@@ -10,7 +10,7 @@ import time
 
 import paho.mqtt.client as mqtt
 
-from detector_tracker import carregar_config
+from util import carregar_config
 from publicador_mqtt import PublicadorMqtt
 
 BROKER_INEXISTENTE = "broker-inexistente.motiva.invalid"
