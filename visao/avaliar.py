@@ -10,7 +10,11 @@ Tipos de erro:
 - falso_negativo: esperado um acidente, obtido SEM_ACIDENTE
 - classificacao_errada: os dois sao acidentes, mas de tipos diferentes
 - indeterminado: o sistema respondeu INDETERMINADO (pediu revisao humana) e o esperado era outro
-Precisao e recall sao de DETECCAO (acidente x sem acidente): INDETERMINADO conta como detectado.
+- excesso_de_confianca: esperado INDETERMINADO (video ambiguo) e o sistema cravou um tipo de acidente
+  (se o sistema responder SEM_ACIDENTE para um esperado INDETERMINADO, o erro e classificacao_errada)
+Precisao e recall sao de DETECCAO (acidente x sem acidente): INDETERMINADO obtido conta como detectado.
+Videos com esperado INDETERMINADO ficam FORA do calculo de precisao e recall e aparecem em um
+contador separado no resumo (nao ha como dizer se havia ou nao acidente).
 """
 
 import argparse
@@ -40,6 +44,8 @@ def tipo_de_erro(esperado, obtido):
     """Classifica o erro. Devolve '' quando acertou."""
     if esperado == obtido:
         return ""
+    if esperado == "INDETERMINADO":  # video ambiguo: nao ha falso positivo nem falso negativo
+        return "classificacao_errada" if obtido == "SEM_ACIDENTE" else "excesso_de_confianca"
     if obtido == "INDETERMINADO":
         return "indeterminado"
     if obtido == "SEM_ACIDENTE":
@@ -65,11 +71,15 @@ def ler_gabarito(caminho, conjunto=None):
 
 
 def resumir(resultados):
-    """Conta acertos e erros e calcula precisao/recall de deteccao (None se nao der para calcular)."""
+    """Conta acertos e erros e calcula precisao/recall de deteccao (None se nao der para calcular).
+
+    Videos com esperado INDETERMINADO nao entram em precisao e recall; sao contados a parte.
+    """
     erros = [r["tipo_erro"] for r in resultados]
-    tp = sum(1 for r in resultados if r["rotulo_esperado"] != "SEM_ACIDENTE" and r["resultado_obtido"] != "SEM_ACIDENTE")
-    fp = sum(1 for r in resultados if r["rotulo_esperado"] == "SEM_ACIDENTE" and r["resultado_obtido"] != "SEM_ACIDENTE")
-    fn = sum(1 for r in resultados if r["rotulo_esperado"] != "SEM_ACIDENTE" and r["resultado_obtido"] == "SEM_ACIDENTE")
+    claros = [r for r in resultados if r["rotulo_esperado"] != "INDETERMINADO"]
+    tp = sum(1 for r in claros if r["rotulo_esperado"] != "SEM_ACIDENTE" and r["resultado_obtido"] != "SEM_ACIDENTE")
+    fp = sum(1 for r in claros if r["rotulo_esperado"] == "SEM_ACIDENTE" and r["resultado_obtido"] != "SEM_ACIDENTE")
+    fn = sum(1 for r in claros if r["rotulo_esperado"] != "SEM_ACIDENTE" and r["resultado_obtido"] == "SEM_ACIDENTE")
     return {
         "total": len(resultados),
         "acertos": sum(1 for r in resultados if r["acerto"] == "sim"),
@@ -77,6 +87,8 @@ def resumir(resultados):
         "falsos_negativos": erros.count("falso_negativo"),
         "classificacoes_erradas": erros.count("classificacao_errada"),
         "indeterminados": erros.count("indeterminado"),
+        "excessos_de_confianca": erros.count("excesso_de_confianca"),
+        "esperados_indeterminados": len(resultados) - len(claros),
         "precisao": tp / (tp + fp) if tp + fp else None,
         "recall": tp / (tp + fn) if tp + fn else None,
     }
@@ -130,6 +142,8 @@ def imprimir_resumo(resumo, caminho_csv):
     print(f"  falsos negativos:       {resumo['falsos_negativos']}")
     print(f"  classificacoes erradas: {resumo['classificacoes_erradas']}")
     print(f"  indeterminados:         {resumo['indeterminados']}")
+    print(f"  excessos de confianca:  {resumo['excessos_de_confianca']}")
+    print(f"  esperado INDETERMINADO: {resumo['esperados_indeterminados']} (fora de precisao e recall)")
     print(f"  precisao (deteccao):    {pct(resumo['precisao'])}")
     print(f"  recall (deteccao):      {pct(resumo['recall'])}")
     print(f"Resultados em {caminho_csv}")
