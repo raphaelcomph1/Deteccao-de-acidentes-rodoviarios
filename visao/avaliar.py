@@ -22,7 +22,7 @@ import csv
 from datetime import datetime
 from pathlib import Path
 
-from detector_tracker import carregar_config
+from util import carregar_config
 from eventos import TIPOS_IDX
 
 CAMPOS_RESULTADO = ["video", "conjunto", "rotulo_esperado", "resultado_obtido", "confianca", "event_id",
