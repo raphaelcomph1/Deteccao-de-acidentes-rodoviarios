@@ -1,0 +1,11 @@
+{
+  "v": 1,
+  "tipo_msg": "ACK",
+  "dispositivo": "esp32-01",
+  "command_id": "cmd-20261012T143240-7c21",
+  "seq": 1760290360123,
+  "event_id": "evt-CAM01-20261012T143210-a3f9",
+  "fase": "APLICADO",
+  "estado": "CONFIRMADO",
+  "duplicado": false
+}

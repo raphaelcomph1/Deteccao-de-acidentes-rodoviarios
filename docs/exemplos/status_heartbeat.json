@@ -1,0 +1,8 @@
+{
+  "v": 1,
+  "tipo_msg": "HEARTBEAT",
+  "dispositivo": "esp32-01",
+  "estado": "CONFIRMADO",
+  "ultimo_seq": 1760290360123,
+  "uptime_s": 1234
+}

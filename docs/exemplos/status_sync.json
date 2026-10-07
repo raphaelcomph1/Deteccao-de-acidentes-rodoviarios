@@ -1,0 +1,8 @@
+{
+  "v": 1,
+  "tipo_msg": "SYNC",
+  "dispositivo": "esp32-01",
+  "estado": "FALHA",
+  "ultimo_seq": 1760290360123,
+  "uptime_s": 1302
+}

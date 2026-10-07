@@ -1,0 +1,29 @@
+{
+  "v": 1,
+  "event_id": "evt-CAM01-20261012T143210-a3f9",
+  "revisao": 1,
+  "timestamp": "2026-10-12T14:32:10-03:00",
+  "camera_id": "CAM01",
+  "local": "Rodovia ficticia, km 42 sentido norte",
+  "tipo": "COLISAO_TRASEIRA",
+  "tipo_idx": 1,
+  "confianca": 0.82,
+  "nivel_confianca": "ALTO",
+  "indicadores": {
+    "veiculos_envolvidos": 2,
+    "pessoa_envolvida": false,
+    "veiculo_parado_na_pista": true,
+    "faixa_obstruida": "desconhecido"
+  },
+  "recomendacao": {
+    "recurso": "AMBULANCIA_SIMULADA",
+    "regra": "R2"
+  },
+  "estado": "SUSPEITA",
+  "evidencia": {
+    "video": "teste_03.mp4",
+    "frame": 412,
+    "tempo_s": 16.5,
+    "arquivo": "evidencias/evt-CAM01-20261012T143210-a3f9.jpg"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "v": 1,
+  "tipo_msg": "HEARTBEAT",
+  "dispositivo": "central",
+  "online": true,
+  "timestamp": "2026-10-12T14:33:00-03:00"
+}
