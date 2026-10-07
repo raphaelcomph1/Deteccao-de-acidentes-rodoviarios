@@ -125,7 +125,7 @@ Exemplos completos em `docs/exemplos/`.
 | `indicadores` | objeto | `veiculos_envolvidos` (int/null), `pessoa_envolvida` (bool/null), `veiculo_parado_na_pista` (bool/null), `faixa_obstruida` (`sim`/`nao`/`desconhecido`) |
 | `recomendacao` | objeto | `recurso` e `regra` (seção 4) |
 | `estado` | string | a Visão sempre publica `SUSPEITA` |
-| `evidencia` | objeto | `video`, `frame`, `tempo_s` e `arquivo` (caminho **local** da imagem; a imagem não trafega pelo broker) |
+| `evidencia` | objeto | `video`, `frame`, `tempo_s` e `arquivo`. `arquivo` é o caminho **local** da imagem, no padrão `visao/saida/evidencias/<event_id>.jpg`, **relativo à raiz do repositório** (a Central monta o caminho completo a partir dele). A imagem não trafega pelo broker. |
 
 ### 5.2 Comando — `comandos` (Central → ESP32) — `exemplos/comando_confirmar.json`
 

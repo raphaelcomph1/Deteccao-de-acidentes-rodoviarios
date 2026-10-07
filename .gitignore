@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+visao/saida/
+dados/*.mp4
+dados/*.avi
+dados/*.mov
+*.pt
+*.onnx
+videos/
+*.mp4
+dados/dev/

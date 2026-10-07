@@ -1,0 +1,42 @@
+# Configuracao do modulo de visao (Motiva Vision)
+
+detector:
+  modelo: modelos/yolo11n.pt   # nano: roda em CPU de notebook
+  tracker: bytetrack.yaml      # ByteTrack embutido no ultralytics
+  confianca_minima: 0.30
+  tamanho_imagem: 640
+  # classes COCO usadas: 0 person, 2 car, 3 motorcycle, 5 bus, 7 truck
+  classes:
+    0: person
+    2: car
+    3: motorcycle
+    5: bus
+    7: truck
+
+saida:
+  pasta: saida
+  logs: saida/logs
+  evidencias: saida/evidencias
+
+# Contrato MQTT v0.2 (docs/contrato_mqtt.md)
+mqtt:
+  broker: broker.hivemq.com    # plano B: test.mosquitto.org
+  porta: 1883
+  client_id: motiva-rm563567-visao
+  topico_eventos: motiva/rm563567/eventos
+  qos: 1
+
+# Limiares provisorios (ajustar so com os videos de AJUSTE)
+classificacao:
+  limiar_alto: 0.70
+  limiar_medio: 0.40
+
+# video -> camera (preencher quando os videos chegarem)
+cameras: {}
+
+# Trajetorias (features de movimento por track). Nao sao limiares de acidente.
+trajetorias:
+  janela_suavizacao: 5   # media movel de N quadros (so usa quadros anteriores)
+  min_quadros: 10        # tracks mais curtos sao descartados como ruido
+  rastro_quadros: 30     # tamanho do rastro desenhado na visualizacao
+  escala_vetor_s: 0.5    # o vetor desenhado mostra o deslocamento previsto em N segundos

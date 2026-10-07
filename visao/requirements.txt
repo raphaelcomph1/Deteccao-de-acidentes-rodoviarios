@@ -1,0 +1,10 @@
+# Python 3.11 — instalar com: pip install -r requirements.txt
+ultralytics==8.4.174
+opencv-python==5.0.0.93
+paho-mqtt==2.1.0
+PyYAML==6.0.3
+# dependencias diretas fixadas (versao CPU do torch)
+torch==2.14.1
+torchvision==0.29.1
+numpy==2.4.6
+lap==0.5.13   # exigido pelo ByteTrack
