@@ -6,7 +6,8 @@ from pathlib import Path
 
 import cv2
 
-from detector_tracker import DetectorTracker, carregar_config
+from detector_tracker import DetectorTracker
+from util import carregar_config
 
 
 def desenhar(quadro, tracks):

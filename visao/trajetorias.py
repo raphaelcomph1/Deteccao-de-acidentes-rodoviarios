@@ -21,7 +21,7 @@ from pathlib import Path
 
 import cv2
 
-from detector_tracker import carregar_config
+from util import carregar_config
 
 CAMPOS = ["frame", "tempo_s", "track_id", "classe", "cx", "cy", "largura", "altura",
           "vx", "vy", "velocidade_px_s", "velocidade_norm", "direcao_graus"]

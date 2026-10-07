@@ -11,7 +11,7 @@ import time
 
 import paho.mqtt.client as mqtt
 
-from detector_tracker import carregar_config
+from util import carregar_config
 from eventos import validar_evento
 from publicador_mqtt import PublicadorMqtt
 
