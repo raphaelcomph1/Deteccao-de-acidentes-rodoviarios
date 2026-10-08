@@ -1,0 +1,24 @@
+
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261007T223212-52c8","event_id":"evt-CAM01-20261007T223209-ff75","seq":1791423087664,"fase":"RECEBIDO","duplicado":false,"estado":"NORMAL","v":1,"dispositivo":"esp32-01","uptime_s":125}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261007T223212-52c8","event_id":"evt-CAM01-20261007T223209-ff75","seq":1791423129979,"fase":"APLICADO","duplicado":false,"estado":"SUSPEITA","motivo":"SUSPEITA","v":1,"dispositivo":"esp32-01","uptime_s":125}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261007T223214-96b6","event_id":"evt-CAM01-20261007T223209-ff75","seq":1791423129979,"fase":"RECEBIDO","duplicado":false,"estado":"SUSPEITA","v":1,"dispositivo":"esp32-01","uptime_s":126}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261007T223214-96b6","event_id":"evt-CAM01-20261007T223209-ff75","seq":1791423129980,"fase":"APLICADO","duplicado":false,"estado":"CONFIRMADO","motivo":"CONFIRMAR","v":1,"dispositivo":"esp32-01","uptime_s":127}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261007T223214-96b6","event_id":"evt-CAM01-20261007T223209-ff75","seq":1791423129980,"fase":"RECEBIDO","duplicado":true,"estado":"CONFIRMADO","motivo":"seq_ja_aplicado","v":1,"dispositivo":"esp32-01","uptime_s":127}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"CONFIRMADO","event_id":"evt-CAM01-20261007T223209-ff75","ultimo_seq":1791423129980,"v":1,"dispositivo":"esp32-01","uptime_s":128}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261007T223218-2c9b","event_id":"evt-CAM01-20261007T223209-ff75","seq":1791423129980,"fase":"RECEBIDO","duplicado":false,"estado":"CONFIRMADO","v":1,"dispositivo":"esp32-01","uptime_s":128}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261007T223218-2c9b","event_id":"evt-CAM01-20261007T223209-ff75","seq":1791423129981,"fase":"APLICADO","duplicado":false,"estado":"NORMAL","motivo":"ENCERRAR","v":1,"dispositivo":"esp32-01","uptime_s":128}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261007T223220-f280","event_id":"evt-CAM01-20261007T223209-ff75","seq":1791423129981,"fase":"RECEBIDO","duplicado":true,"estado":"NORMAL","motivo":"seq_ja_aplicado","v":1,"dispositivo":"esp32-01","uptime_s":130}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261007T223222-2f45","event_id":"evt-CAM01-20261007T223222-3c8d","seq":1791423129981,"fase":"RECEBIDO","duplicado":false,"estado":"NORMAL","v":1,"dispositivo":"esp32-01","uptime_s":131}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261007T223222-2f45","event_id":"evt-CAM01-20261007T223222-3c8d","seq":1791423129982,"fase":"APLICADO","duplicado":false,"estado":"SUSPEITA","motivo":"SUSPEITA","v":1,"dispositivo":"esp32-01","uptime_s":131}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261007T223224-124a","event_id":"evt-CAM01-20261007T223222-3c8d","seq":1791423129982,"fase":"RECEBIDO","duplicado":false,"estado":"SUSPEITA","v":1,"dispositivo":"esp32-01","uptime_s":132}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261007T223224-124a","event_id":"evt-CAM01-20261007T223222-3c8d","seq":1791423129983,"fase":"APLICADO","duplicado":false,"estado":"NORMAL","motivo":"REJEITAR","v":1,"dispositivo":"esp32-01","uptime_s":132}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261007T223226-9bb2","event_id":null,"seq":1791423129983,"fase":"RECEBIDO","duplicado":false,"estado":"NORMAL","v":1,"dispositivo":"esp32-01","uptime_s":133}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261007T223226-9bb2","event_id":null,"seq":1791423129984,"fase":"APLICADO","duplicado":false,"estado":"CONFIRMADO","motivo":"SINCRONIZAR","v":1,"dispositivo":"esp32-01","uptime_s":133}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"CONFIRMADO","event_id":null,"ultimo_seq":1791423129984,"v":1,"dispositivo":"esp32-01","uptime_s":133}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261007T223228-61e4","event_id":null,"seq":1791423129984,"fase":"RECEBIDO","duplicado":false,"estado":"CONFIRMADO","v":1,"dispositivo":"esp32-01","uptime_s":134}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261007T223228-61e4","event_id":null,"seq":1791423129985,"fase":"APLICADO","duplicado":false,"estado":"NORMAL","motivo":"ENCERRAR","v":1,"dispositivo":"esp32-01","uptime_s":134}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261007T223230-2942","event_id":"evt-CAM01-20261007T223222-3c8d","seq":1791423129985,"fase":"RECUSADO","duplicado":false,"estado":"NORMAL","motivo":"estado_alvo_invalido","v":1,"dispositivo":"esp32-01","uptime_s":135}
+[FALHA] ATIVA
+[FALHA] RECUPERADA
+[PUB] {"tipo_msg":"SYNC","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":1791423129985,"motivo":"pedindo_estado_atual","v":1,"dispositivo":"esp32-01","uptime_s":137}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":1791423129985,"v":1,"dispositivo":"esp32-01","uptime_s":138}
