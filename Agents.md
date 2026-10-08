@@ -118,7 +118,7 @@ visao/
 ## 7. Estado atual e próximos passos (atualizar conforme avançar)
 
 - [x] Ambiente Python 3.11 + `requirements.txt` com versões
-- [ ] YOLO + ByteTrack rodando em um vídeo de treino, com IDs estáveis desenhados na tela — pipeline pronto (`main.py --mostrar`), testado só em vídeo sintético; falta validar a estabilidade dos IDs em vídeo real
+- [ ] YOLO + ByteTrack rodando em um vídeo de treino, com IDs estáveis desenhados na tela — pipeline pronto (`main.py --mostrar`), testado só em vídeo sintético; falta validar a estabilidade dos IDs em vídeo reall
 - [x] Registro de trajetórias por track em CSV (`saida/logs/`)
 - [x] Publicação de `docs/exemplos/evento.json` no broker (teste de conexão) — `testar_mqtt.py` (tópico de teste; `--real` publica em `eventos`)
 - [x] Caminho da evidência padronizado (`visao/saida/evidencias/<event_id>.jpg`, relativo à raiz) no contrato e no exemplo
