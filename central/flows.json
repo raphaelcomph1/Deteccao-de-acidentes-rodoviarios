@@ -1,0 +1,560 @@
+[
+    {
+        "id": "c1acac5a23e5b45f",
+        "type": "tab",
+        "label": "Fluxo 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "5fed12d25747ca76",
+        "type": "mqtt-broker",
+        "name": "broker-hivemq",
+        "broker": "broker.hivemq.com",
+        "port": 1883,
+        "clientid": "motiva-rm563567-central",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "motiva/rm563567/central",
+        "birthQos": "1",
+        "birthRetain": "true",
+        "birthPayload": "{\"v\":1,\"tipo_msg\":\"HEARTBEAT\",\"dispositivo\":\"central\",\"online\":true}",
+        "birthMsg": {},
+        "closeTopic": "motiva/rm563567/central",
+        "closeQos": "1",
+        "closeRetain": "true",
+        "closePayload": "{\"v\":1,\"tipo_msg\":\"LWT\",\"dispositivo\":\"central\",\"online\":false}",
+        "closeMsg": {},
+        "willTopic": "motiva/rm563567/central",
+        "willQos": "1",
+        "willRetain": "true",
+        "willPayload": "{\"v\":1,\"tipo_msg\":\"LWT\",\"dispositivo\":\"central\",\"online\":false}",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "acda987339e7b5e7",
+        "type": "ui-base",
+        "name": "My Dashboard",
+        "path": "/dashboard",
+        "appIcon": "",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "page",
+        "navigationStyle": "default",
+        "titleBarStyle": "default",
+        "showReconnectNotification": true,
+        "notificationDisplayTime": 1,
+        "showDisconnectNotification": true,
+        "allowInstall": false
+    },
+    {
+        "id": "c4b3275a13db982e",
+        "type": "ui-theme",
+        "name": "Default Theme",
+        "colors": {
+            "surface": "#fcfcfd",
+            "primary": "#0d74ce",
+            "bgPage": "#f9f9fb",
+            "groupBg": "#ffffff",
+            "groupOutline": "#d9d9e0"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px"
+        }
+    },
+    {
+        "id": "e81b63a6596f2f8f",
+        "type": "ui-page",
+        "name": "Central Motiva",
+        "ui": "acda987339e7b5e7",
+        "path": "/central",
+        "icon": "home",
+        "layout": "grid",
+        "theme": "c4b3275a13db982e",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "3"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "6"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "9"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "tabs": [],
+        "order": 1,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "829390bde57d878d",
+        "type": "ui-group",
+        "name": "Operador",
+        "page": "e81b63a6596f2f8f",
+        "width": 6,
+        "height": 1,
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default",
+        "tab": ""
+    },
+    {
+        "id": "8e3aa700b1638753",
+        "type": "mqtt in",
+        "z": "c1acac5a23e5b45f",
+        "name": "",
+        "topic": "motiva/rm563567/teste",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "5fed12d25747ca76",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 600,
+        "y": 220,
+        "wires": [
+            [
+                "a070192b1aa7e183"
+            ]
+        ]
+    },
+    {
+        "id": "a070192b1aa7e183",
+        "type": "debug",
+        "z": "c1acac5a23e5b45f",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 820,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "107cdf316d53af6f",
+        "type": "inject",
+        "z": "c1acac5a23e5b45f",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "ola motiva",
+        "payload": "",
+        "payloadType": "date",
+        "x": 1110,
+        "y": 180,
+        "wires": [
+            [
+                "9fe501b39f8b58f9"
+            ]
+        ]
+    },
+    {
+        "id": "9fe501b39f8b58f9",
+        "type": "mqtt out",
+        "z": "c1acac5a23e5b45f",
+        "name": "",
+        "topic": "motiva/rm563567/teste",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5fed12d25747ca76",
+        "x": 1220,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "f2452df8ad2810b3",
+        "type": "ui-button",
+        "z": "c1acac5a23e5b45f",
+        "group": "829390bde57d878d",
+        "name": "",
+        "label": "CONFIRMAR",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "iconPosition": "left",
+        "payload": "CONFIRMAR",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 540,
+        "y": 320,
+        "wires": [
+            [
+                "14d405c911289c21"
+            ]
+        ]
+    },
+    {
+        "id": "7e2bc156f29c4019",
+        "type": "mqtt out",
+        "z": "c1acac5a23e5b45f",
+        "name": "",
+        "topic": "motiva/rm563567/comandos",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5fed12d25747ca76",
+        "x": 1160,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "8725b65147e797f1",
+        "type": "ui-text",
+        "z": "c1acac5a23e5b45f",
+        "group": "829390bde57d878d",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Comando enviado",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#717171",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 1150,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "d21db951c5fbddd3",
+        "type": "ui-button",
+        "z": "c1acac5a23e5b45f",
+        "group": "829390bde57d878d",
+        "name": "",
+        "label": "REJEITAR",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "iconPosition": "left",
+        "payload": "REJEITAR",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 530,
+        "y": 380,
+        "wires": [
+            [
+                "14d405c911289c21"
+            ]
+        ]
+    },
+    {
+        "id": "4a417a5e7cad9b09",
+        "type": "ui-button",
+        "z": "c1acac5a23e5b45f",
+        "group": "829390bde57d878d",
+        "name": "",
+        "label": "ENCERRAR",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "iconPosition": "left",
+        "payload": "ENCERRAR",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 530,
+        "y": 440,
+        "wires": [
+            [
+                "14d405c911289c21"
+            ]
+        ]
+    },
+    {
+        "id": "14d405c911289c21",
+        "type": "function",
+        "z": "c1acac5a23e5b45f",
+        "name": "montar comando (contrato v0.2)",
+        "func": "// Monta o comando no formato do contrato v0.2 (docs/contrato_mqtt.md, secao 5.2)\nconst estados = {\n  CONFIRMAR: \"CONFIRMADO\",\n  REJEITAR:  \"NORMAL\",\n  ENCERRAR:  \"NORMAL\"\n};\n\nconst acao = msg.payload;\nif (!(acao in estados)) { node.warn(\"Acao desconhecida: \" + acao); return null; }\n\nconst ev = flow.get(\"evento_atual\");\nif (!ev || !ev.event_id) { node.warn(\"Nenhum evento selecionado\"); return null; }\n\n// seq = horario da central em ms, sempre crescente (nao zera se o Node-RED reiniciar)\nconst ultimo = flow.get(\"ultimo_seq\") || 0;\nconst seq = Math.max(Date.now(), ultimo + 1);\nflow.set(\"ultimo_seq\", seq);\n\n// command_id = cmd-AAAAMMDDTHHMMSS-<4 hex>\nconst d = new Date();\nconst p = n => String(n).padStart(2, \"0\");\nconst carimbo = `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}T${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;\nconst hex = Math.floor(Math.random() * 65536).toString(16).padStart(4, \"0\");\n\nmsg.payload = {\n  v: 1,\n  command_id: `cmd-${carimbo}-${hex}`,\n  seq: seq,\n  event_id: ev.event_id,\n  acao: acao,\n  estado_alvo: estados[acao]\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 720,
+        "y": 380,
+        "wires": [
+            [
+                "7e2bc156f29c4019",
+                "244c8ad33626f4ed",
+                "edb25472d58e173d"
+            ]
+        ]
+    },
+    {
+        "id": "b1806f0cef974ecf",
+        "type": "inject",
+        "z": "c1acac5a23e5b45f",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": " ",
+        "payload": " {\"event_id\":\"evt-teste-001\"}",
+        "payloadType": "json",
+        "x": 620,
+        "y": 520,
+        "wires": [
+            [
+                "f5383b4a131ca5a0"
+            ]
+        ]
+    },
+    {
+        "id": "f5383b4a131ca5a0",
+        "type": "function",
+        "z": "c1acac5a23e5b45f",
+        "name": "function 2",
+        "func": "let ev = msg.payload;\nif (typeof ev === \"string\") {\n  try { ev = JSON.parse(ev); }\n  catch (e) { node.warn(\"JSON inválido: \" + msg.payload); return null; }\n}\nflow.set(\"evento_atual\", ev);\nnode.warn(\"evento_atual gravado: \" + JSON.stringify(ev));\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 920,
+        "y": 520,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "244c8ad33626f4ed",
+        "type": "debug",
+        "z": "c1acac5a23e5b45f",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 880,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "edb25472d58e173d",
+        "type": "change",
+        "z": "c1acac5a23e5b45f",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "  \"Enviado: \" & payload.acao & \" (\" & payload.command_id & \")\"",
+                "tot": "jsonata"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 910,
+        "y": 440,
+        "wires": [
+            [
+                "8725b65147e797f1"
+            ]
+        ]
+    },
+    {
+        "id": "b130ac7c5a8fc429",
+        "type": "mqtt in",
+        "z": "c1acac5a23e5b45f",
+        "name": "",
+        "topic": "motiva/rm563567/status",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "5fed12d25747ca76",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 640,
+        "y": 620,
+        "wires": [
+            [
+                "3ab8193ec07bf2ab"
+            ]
+        ]
+    },
+    {
+        "id": "3ab8193ec07bf2ab",
+        "type": "function",
+        "z": "c1acac5a23e5b45f",
+        "name": "interpretar ACK",
+        "func": "// So ACKs interessam aqui (HEARTBEAT, SYNC e LWT sao tratados em outro lugar)\nconst p = msg.payload;\nif (!p || p.tipo_msg !== \"ACK\") return null;\n\nif (p.duplicado) {\n  msg.payload = `Duplicado, ignorado pelo ESP32: ${p.command_id}`;\n} else if (p.fase === \"APLICADO\") {\n  msg.payload = `Aplicado pelo ESP32: ${p.command_id} (${p.estado})`;\n} else {\n  msg.payload = `Recebido pelo ESP32: ${p.command_id}`;\n}\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 840,
+        "y": 620,
+        "wires": [
+            [
+                "f70ecbf69e99223e"
+            ]
+        ]
+    },
+    {
+        "id": "f70ecbf69e99223e",
+        "type": "ui-text",
+        "z": "c1acac5a23e5b45f",
+        "group": "829390bde57d878d",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Confirmado pelo ESP32",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#717171",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 1130,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "37af552192a96893",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "@flowfuse/node-red-dashboard": "1.33.0"
+        }
+    }
+]
