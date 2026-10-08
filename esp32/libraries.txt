@@ -1,0 +1,2 @@
+PubSubClient@2.8
+ArduinoJson@7.0.4
