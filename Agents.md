@@ -62,6 +62,7 @@ Cadeia completa:
 ```
 visao/
 ├── main.py                 # ponto de entrada: python main.py --video caminho.mp4
+├── util.py                 # carregar_config (sem dependências pesadas)
 ├── config.yaml             # broker, tópicos, limiares, mapeamento video -> camera_id/local
 ├── detector_tracker.py     # YOLO + ByteTrack, devolve tracks por quadro
 ├── trajetorias.py          # histórico por track: posição, velocidade, direção, tamanho da caixa
@@ -124,6 +125,10 @@ visao/
 - [x] `trajetorias.py`: velocidade (px/s e normalizada pela caixa) e direção suavizadas, CSV + vídeo com rastro e vetor — validado só em vídeo sintético (30 px/s medido ≈ 30,4); falta conferir em vídeo real (a direção oscila, pode precisar de janela maior)
 - [x] `dados/dev/` e `docs/videos_desenvolvimento.md` criados (tabela ainda vazia; nenhum vídeo de desenvolvimento adicionado)
 - [x] Esqueleto do `avaliar.py` (`--conjunto`, CSV em `saida/resultados/`, resumo, precisão/recall), testado com gabarito falso em arquivo temporário; `analisar_video()` ainda é um TODO
+- [x] `publicador_mqtt.py`: `publicar()` não derruba o programa com o broker fora; guarda pendentes em memória e reenvia ao reconectar (`testar_mqtt_offline.py`)
+- [x] `avaliar.py`: esperado `INDETERMINADO` + acidente obtido = `excesso_de_confianca`; esses vídeos ficam fora de precisão/recall e têm contador próprio
+- [x] `carregar_config` movido para `visao/util.py` (avaliar e testes não dependem mais do ultralytics)
+- [x] `README.md` na raiz (objetivo, arquitetura, pastas, integrantes, instalação e uso da visão; Central e ESP32 marcados "em construção")
 - [ ] Análise temporal e classificação (usar `dados/dev/` até os 6 vídeos de AJUSTE chegarem, previstos para 09/10)
 - [ ] Deduplicação, evidências e publicação real dos eventos
 - [ ] Ligar o pipeline real ao `avaliar.py` e fazer a avaliação final nos vídeos RESERVADOS (14/10)
