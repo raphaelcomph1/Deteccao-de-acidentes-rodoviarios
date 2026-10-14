@@ -1,0 +1,33 @@
+[MQTT] conectando...
+[MQTT] conectado
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"FALHA","event_id":null,"ultimo_seq":0,"v":1,"dispositivo":"esp32-01","uptime_s":4}
+[FALHA] RECUPERADA
+[PUB] {"tipo_msg":"SYNC","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":0,"motivo":"pedindo_estado_atual","v":1,"dispositivo":"esp32-01","uptime_s":4}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":0,"v":1,"dispositivo":"esp32-01","uptime_s":9}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":0,"v":1,"dispositivo":"esp32-01","uptime_s":14}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":0,"v":1,"dispositivo":"esp32-01","uptime_s":19}
+[FALHA] ATIVA
+[MQTT] conectando...
+[MQTT] conectado
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"FALHA","event_id":null,"ultimo_seq":0,"v":1,"dispositivo":"esp32-01","uptime_s":20}
+[FALHA] RECUPERADA
+[PUB] {"tipo_msg":"SYNC","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":0,"motivo":"pedindo_estado_atual","v":1,"dispositivo":"esp32-01","uptime_s":20}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":0,"v":1,"dispositivo":"esp32-01","uptime_s":25}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":0,"v":1,"dispositivo":"esp32-01","uptime_s":30}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":0,"v":1,"dispositivo":"esp32-01","uptime_s":35}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":0,"v":1,"dispositivo":"esp32-01","uptime_s":40}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":0,"v":1,"dispositivo":"esp32-01","uptime_s":45}
+[FALHA] ATIVA
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"FALHA","event_id":null,"ultimo_seq":0,"v":1,"dispositivo":"esp32-01","uptime_s":50}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"FALHA","event_id":null,"ultimo_seq":0,"v":1,"dispositivo":"esp32-01","uptime_s":55}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"FALHA","event_id":null,"ultimo_seq":0,"v":1,"dispositivo":"esp32-01","uptime_s":60}
+[FALHA] RECUPERADA
+[PUB] {"tipo_msg":"SYNC","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":0,"motivo":"pedindo_estado_atual","v":1,"dispositivo":"esp32-01","uptime_s":63}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":0,"v":1,"dispositivo":"esp32-01","uptime_s":65}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":0,"v":1,"dispositivo":"esp32-01","uptime_s":70}
+[FALHA] ATIVA
+[MQTT] conectando...
+[MQTT] conectado
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"FALHA","event_id":null,"ultimo_seq":0,"v":1,"dispositivo":"esp32-01","uptime_s":76}
+[FALHA] RECUPERADA
+[PUB] {"tipo_msg":"SYNC","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":0,"motivo":"pedindo_estado_atual","v":1,"dispositivo":"esp32-01","uptime_s":76}

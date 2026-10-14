@@ -1,0 +1,45 @@
+
+
+-> SUSPEITA alvo=SUSPEITA evt=evt-CAM01-20261014T194017-6ffb seq=1792017617723   [amarelo piscando]
+  <- ACK fase=RECEBIDO  duplicado=False estado=NORMAL 
+  <- ACK fase=APLICADO  duplicado=False estado=SUSPEITA SUSPEITA
+
+-> CONFIRMAR alvo=CONFIRMADO evt=evt-CAM01-20261014T194017-6ffb seq=1792017617724   [vermelho + buzzer]
+  <- ACK fase=RECEBIDO  duplicado=False estado=SUSPEITA 
+  <- ACK fase=APLICADO  duplicado=False estado=CONFIRMADO CONFIRMAR
+
+-> CONFIRMAR alvo=CONFIRMADO evt=evt-CAM01-20261014T194017-6ffb seq=1792017617724   [DUPLICADO: mesmo seq, nada muda]
+  <- ACK fase=RECEBIDO  duplicado=True estado=CONFIRMADO seq_ja_aplicado
+
+-> ENCERRAR alvo=NORMAL evt=evt-CAM01-20261014T194017-6ffb seq=1792017617725   [volta NORMAL (verde)]
+  <- ACK fase=RECEBIDO  duplicado=False estado=CONFIRMADO 
+  <- ACK fase=APLICADO  duplicado=False estado=NORMAL ENCERRAR
+
+-> SUSPEITA alvo=SUSPEITA evt=evt-CAM01-20261014T194017-6ffb seq=1792017617723   [seq ANTIGO: nao reabre evento encerrado]
+  <- ACK fase=RECEBIDO  duplicado=True estado=NORMAL seq_ja_aplicado
+
+-> SUSPEITA alvo=SUSPEITA evt=evt-CAM01-20261014T194030-6f35 seq=1792017617726   [novo evento]
+  <- ACK fase=RECEBIDO  duplicado=False estado=NORMAL 
+  <- ACK fase=APLICADO  duplicado=False estado=SUSPEITA SUSPEITA
+
+-> REJEITAR alvo=NORMAL evt=evt-CAM01-20261014T194030-6f35 seq=1792017617727   [operador rejeita -> NORMAL]
+  <- ACK fase=RECEBIDO  duplicado=False estado=SUSPEITA 
+  <- ACK fase=APLICADO  duplicado=False estado=NORMAL REJEITAR
+
+-> SINCRONIZAR alvo=CONFIRMADO evt=None seq=1792017617728   [sincronizacao com event_id null]
+  <- ACK fase=RECEBIDO  duplicado=False estado=NORMAL 
+  <- ACK fase=APLICADO  duplicado=False estado=CONFIRMADO SINCRONIZAR
+
+-> ENCERRAR alvo=NORMAL evt=None seq=1792017617729   [volta NORMAL]
+  <- ACK fase=RECEBIDO  duplicado=False estado=CONFIRMADO 
+  <- ACK fase=APLICADO  duplicado=False estado=NORMAL ENCERRAR
+
+-> SUSPEITA alvo=XYZ evt=evt-CAM01-20261014T194030-6f35 seq=1792017617730   [RECUSADO: estado_alvo invalido]
+  <- ACK fase=RECUSADO  duplicado=False estado=NORMAL estado_alvo_invalido
+
+Central offline (LWT): ESP32 deve ir para FALHA (magenta)...
+Central online: ESP32 deve sair de FALHA e publicar SYNC.
+  <- SYNC estado=NORMAL pedindo_estado_atual
+
+Parando heartbeat da Central por 35 s: ESP32 deve entrar em FALHA por timeout...
+Heartbeat retomado: deve recuperar e publicar SYNC.

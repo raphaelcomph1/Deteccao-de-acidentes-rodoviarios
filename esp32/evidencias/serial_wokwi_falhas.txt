@@ -1,0 +1,49 @@
+
+ets Jul 29 2019 12:21:46
+
+rst:0x1 (POWERON_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3fff0030,len:1156
+load:0x40078000,len:11456
+ho 0 tail 12 room 4
+load:0x40080400,len:2972
+entry 0x400805dc
+[MQTT] conectando...
+[MQTT] falhou rc=-4
+[MQTT] conectando...
+[MQTT] conectado
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"FALHA","event_id":null,"ultimo_seq":0,"v":1,"dispositivo":"esp32-01","uptime_s":7}
+[FALHA] RECUPERADA
+[PUB] {"tipo_msg":"SYNC","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":0,"motivo":"pedindo_estado_atual","v":1,"dispositivo":"esp32-01","uptime_s":7}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261014T194020-5315","event_id":"evt-CAM01-20261014T194017-6ffb","seq":0,"fase":"RECEBIDO","duplicado":false,"estado":"NORMAL","v":1,"dispositivo":"esp32-01","uptime_s":9}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261014T194020-5315","event_id":"evt-CAM01-20261014T194017-6ffb","seq":1792017617723,"fase":"APLICADO","duplicado":false,"estado":"SUSPEITA","motivo":"SUSPEITA","v":1,"dispositivo":"esp32-01","uptime_s":9}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261014T194022-d0ce","event_id":"evt-CAM01-20261014T194017-6ffb","seq":1792017617723,"fase":"RECEBIDO","duplicado":false,"estado":"SUSPEITA","v":1,"dispositivo":"esp32-01","uptime_s":11}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261014T194022-d0ce","event_id":"evt-CAM01-20261014T194017-6ffb","seq":1792017617724,"fase":"APLICADO","duplicado":false,"estado":"CONFIRMADO","motivo":"CONFIRMAR","v":1,"dispositivo":"esp32-01","uptime_s":11}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"CONFIRMADO","event_id":"evt-CAM01-20261014T194017-6ffb","ultimo_seq":1792017617724,"v":1,"dispositivo":"esp32-01","uptime_s":12}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261014T194022-d0ce","event_id":"evt-CAM01-20261014T194017-6ffb","seq":1792017617724,"fase":"RECEBIDO","duplicado":true,"estado":"CONFIRMADO","motivo":"seq_ja_aplicado","v":1,"dispositivo":"esp32-01","uptime_s":12}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261014T194026-8662","event_id":"evt-CAM01-20261014T194017-6ffb","seq":1792017617724,"fase":"RECEBIDO","duplicado":false,"estado":"CONFIRMADO","v":1,"dispositivo":"esp32-01","uptime_s":13}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261014T194026-8662","event_id":"evt-CAM01-20261014T194017-6ffb","seq":1792017617725,"fase":"APLICADO","duplicado":false,"estado":"NORMAL","motivo":"ENCERRAR","v":1,"dispositivo":"esp32-01","uptime_s":13}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261014T194028-af03","event_id":"evt-CAM01-20261014T194017-6ffb","seq":1792017617725,"fase":"RECEBIDO","duplicado":true,"estado":"NORMAL","motivo":"seq_ja_aplicado","v":1,"dispositivo":"esp32-01","uptime_s":14}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261014T194030-1098","event_id":"evt-CAM01-20261014T194030-6f35","seq":1792017617725,"fase":"RECEBIDO","duplicado":false,"estado":"NORMAL","v":1,"dispositivo":"esp32-01","uptime_s":16}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261014T194030-1098","event_id":"evt-CAM01-20261014T194030-6f35","seq":1792017617726,"fase":"APLICADO","duplicado":false,"estado":"SUSPEITA","motivo":"SUSPEITA","v":1,"dispositivo":"esp32-01","uptime_s":16}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"SUSPEITA","event_id":"evt-CAM01-20261014T194030-6f35","ultimo_seq":1792017617726,"v":1,"dispositivo":"esp32-01","uptime_s":17}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261014T194032-f086","event_id":"evt-CAM01-20261014T194030-6f35","seq":1792017617726,"fase":"RECEBIDO","duplicado":false,"estado":"SUSPEITA","v":1,"dispositivo":"esp32-01","uptime_s":17}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261014T194032-f086","event_id":"evt-CAM01-20261014T194030-6f35","seq":1792017617727,"fase":"APLICADO","duplicado":false,"estado":"NORMAL","motivo":"REJEITAR","v":1,"dispositivo":"esp32-01","uptime_s":17}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261014T194034-5610","event_id":null,"seq":1792017617727,"fase":"RECEBIDO","duplicado":false,"estado":"NORMAL","v":1,"dispositivo":"esp32-01","uptime_s":19}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261014T194034-5610","event_id":null,"seq":1792017617728,"fase":"APLICADO","duplicado":false,"estado":"CONFIRMADO","motivo":"SINCRONIZAR","v":1,"dispositivo":"esp32-01","uptime_s":19}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261014T194036-cc31","event_id":null,"seq":1792017617728,"fase":"RECEBIDO","duplicado":false,"estado":"CONFIRMADO","v":1,"dispositivo":"esp32-01","uptime_s":20}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261014T194036-cc31","event_id":null,"seq":1792017617729,"fase":"APLICADO","duplicado":false,"estado":"NORMAL","motivo":"ENCERRAR","v":1,"dispositivo":"esp32-01","uptime_s":20}
+[PUB] {"tipo_msg":"ACK","command_id":"cmd-20261014T194038-2f81","event_id":"evt-CAM01-20261014T194030-6f35","seq":1792017617729,"fase":"RECUSADO","duplicado":false,"estado":"NORMAL","motivo":"estado_alvo_invalido","v":1,"dispositivo":"esp32-01","uptime_s":21}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":1792017617729,"v":1,"dispositivo":"esp32-01","uptime_s":22}
+[FALHA] ATIVA
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"FALHA","event_id":null,"ultimo_seq":1792017617729,"v":1,"dispositivo":"esp32-01","uptime_s":27}
+[FALHA] RECUPERADA
+[PUB] {"tipo_msg":"SYNC","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":1792017617729,"motivo":"pedindo_estado_atual","v":1,"dispositivo":"esp32-01","uptime_s":28}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":1792017617729,"v":1,"dispositivo":"esp32-01","uptime_s":32}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":1792017617729,"v":1,"dispositivo":"esp32-01","uptime_s":37}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":1792017617729,"v":1,"dispositivo":"esp32-01","uptime_s":42}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":1792017617729,"v":1,"dispositivo":"esp32-01","uptime_s":47}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":1792017617729,"v":1,"dispositivo":"esp32-01","uptime_s":52}
+[PUB retained] {"tipo_msg":"HEARTBEAT","online":true,"estado":"NORMAL","event_id":null,"ultimo_seq":1792017617729,"v":1,"dispositivo":"esp32-01","uptime_s":57}
