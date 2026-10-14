@@ -1,0 +1,32 @@
+
+Fase 1 (20 s): Central enviando heartbeat. O ESP32 deve ficar verde (NORMAL).
+  <- HEARTBEAT estado=FALHA 
+  <- HEARTBEAT estado=NORMAL 
+  <- HEARTBEAT estado=NORMAL 
+
+Fase 2 (80 s): heartbeat da Central PARADO.
+O ESP32 deve entrar em FALHA (LED magenta, [FALHA] ATIVA) cerca de 30 s depois,
+contados no relogio do Wokwi, sem aparecer '[MQTT] conectando' antes.
+  <- LWT estado=OFFLINE 
+  <- HEARTBEAT estado=FALHA 
+  <- SYNC estado=NORMAL pedindo_estado_atual
+  ... 10 s sem heartbeat
+  <- HEARTBEAT estado=NORMAL 
+  ... 20 s sem heartbeat
+  <- HEARTBEAT estado=NORMAL 
+  ... 30 s sem heartbeat
+  <- HEARTBEAT estado=NORMAL 
+  ... 40 s sem heartbeat
+  <- HEARTBEAT estado=NORMAL 
+  ... 50 s sem heartbeat
+  <- HEARTBEAT estado=NORMAL 
+  ... 60 s sem heartbeat
+  <- HEARTBEAT estado=FALHA 
+  <- HEARTBEAT estado=FALHA 
+  ... 70 s sem heartbeat
+  <- HEARTBEAT estado=FALHA 
+  ... 80 s sem heartbeat
+
+Fase 3: heartbeat retomado. O ESP32 deve sair de FALHA e publicar SYNC.
+  <- SYNC estado=NORMAL pedindo_estado_atual
+  <- HEARTBEAT estado=NORMAL 

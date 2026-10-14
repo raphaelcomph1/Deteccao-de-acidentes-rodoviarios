@@ -9,6 +9,7 @@ Sinalização da via: ESP32 simulado no Wokwi com LED RGB e buzzer, controlado p
 | `diagram.json` | Esquema de ligação do Wokwi (ESP32 + LED RGB + buzzer) |
 | `libraries.txt` | Dependências com versões: PubSubClient 2.8 e ArduinoJson 7.0.4 |
 | `test_mqtt.py` | Simula a Central e testa duplicata, seq antigo, SINCRONIZAR, FALHA |
+| `teste_timeout.py` | Teste isolado do timeout de 30 s sem heartbeat da Central |
 
 ## Como executar
 1. Em wokwi.com, crie um projeto **ESP32** e substitua `sketch.ino`, `diagram.json` e `libraries.txt` pelos arquivos desta pasta.
