@@ -311,8 +311,26 @@ class AnalisadorTemporal:
         cand["queda_proporcao"] = arredondar(pessoa["queda_proporcao"]) if pessoa else None
         cand["desloc_brusco"] = arredondar(pessoa["desloc_brusco"]) if pessoa else None
         cand["pessoa_sumiu"] = pessoa["sumiu"] if pessoa else None
+        cand["conf_media"], cand["continuidade"] = self.qualidade_tracking(estado, quadro)
         cand["completo"] = completo
         return cand
+
+    def qualidade_tracking(self, estado, quadro):
+        """Confianca media das deteccoes e continuidade do tracking dos veiculos do par (janela pre + pos).
+
+        continuidade = fracao dos quadros esperados em que o track apareceu (1.0 = nenhum buraco).
+        A pessoa fica de fora: sumir do tracking e justamente uma das evidencias do atropelamento."""
+        c = estado["c"]
+        ini = c - self.n_quadros(self.cfg["janela_pre_s"])
+        fim = min(quadro, c + self.n_quadros(self.cfg["janela_pos_s"]))
+        lados = ("a",) if estado["tipo"] == "pessoa_veiculo" else ("a", "b")
+        confs, continuidades = [], []
+        for lado in lados:
+            jan = self.janela(estado[lado], ini, fim)
+            confs += [f["conf"] for f in jan if f.get("conf") is not None]
+            continuidades.append(len(jan) / (fim - ini + 1))
+        conf_media = sum(confs) / len(confs) if confs else None
+        return arredondar(conf_media, 3), arredondar(min(continuidades), 3)
 
 
 # ---------------------------------------------------------------- execucao sobre o CSV de main.py

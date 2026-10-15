@@ -26,10 +26,47 @@ mqtt:
   topico_eventos: motiva/rm563567/eventos
   qos: 1
 
-# Limiares provisorios (ajustar so com os videos de AJUSTE)
+# Classificador (docs/algoritmo_visao.md). Valores provisorios: ajustar so com os videos de AJUSTE.
 classificacao:
   limiar_alto: 0.70
   limiar_medio: 0.40
+  # pesos das evidencias (cada grupo soma 1.0); cada evidencia vale de 0 a 1
+  pesos_colisao:
+    contato: 0.15
+    desaceleracao: 0.25
+    parada: 0.20
+    geometria: 0.40           # o tipo depende da geometria: angulo ambiguo nao pode chegar a ALTO
+  pesos_atropelamento:        # conservador: a pessoa pesa metade do total, sinal isolado vale pela metade e ha teto
+    contato: 0.10
+    veiculo_reage: 0.15
+    pessoa: 0.50
+    geometria: 0.25
+  teto_atropelamento: 0.85    # sem video real de atropelamento nao se afirma com certeza maxima
+  aproximacao_ref: 1.0        # aproximacao (caixas/s) que vale evidencia de contato 1.0
+  desaceleracao_zero: 0.30    # queda relativa de velocidade que vale 0 ...
+  desaceleracao_cheia: 0.90   # ... e a que vale 1.0
+  parada_ref_s: 1.0           # tempo parado depois do contato que vale 1.0
+  pessoa_queda_ref: 0.60      # queda da proporcao altura/largura que vale 1.0
+  pessoa_desloc_ref: 3.0      # deslocamento brusco (caixas/s) que vale 1.0
+  # geometria, em graus. Traseira: angulo entre direcoes (ou alinhamento) <= pleno vale 1, >= zero vale 0.
+  traseira_pleno: 20
+  traseira_zero: 45
+  alinhamento_traseira_pleno: 30   # veiculo unico em movimento: angulo entre a direcao dele e o vetor ate o outro
+  alinhamento_traseira_zero: 60
+  alinhamento_tras_dois_pleno: 40  # dois em movimento: pelo menos um vinha de frente para o outro
+  alinhamento_tras_dois_zero: 70
+  lateral_zero: 30                 # angulo entre direcoes: 0 em lateral_zero, 1 a partir de lateral_pleno ...
+  lateral_pleno: 60
+  lateral_max_pleno: 120           # ... ate aqui, voltando a 0 em lateral_max_zero (frontal nao e lateral)
+  lateral_max_zero: 150
+  alinhamento_lateral_zero: 45     # veiculo unico em movimento: aproximacao de lado
+  alinhamento_lateral_pleno: 75
+  # penalidades (subtraidas do escore, no maximo penalidade_max cada)
+  penalidade_max: 0.15
+  conf_ref: 0.60              # confianca media das deteccoes abaixo disto comeca a penalizar ...
+  conf_min: 0.35              # ... e daqui para baixo penaliza o maximo
+  continuidade_ref: 0.80      # fracao de quadros com o track visivel (tracking instavel penaliza abaixo disto)
+  continuidade_min: 0.30
 
 # video -> camera (preencher quando os videos chegarem)
 cameras: {}
