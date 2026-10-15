@@ -1,8 +1,8 @@
 [
     {
-        "id": "c1acac5a23e5b45f",
+        "id": "0acef594f62d9032",
         "type": "tab",
-        "label": "Fluxo 1",
+        "label": "Central",
         "disabled": false,
         "info": "",
         "env": []
@@ -23,7 +23,7 @@
         "birthTopic": "motiva/rm563567/central",
         "birthQos": "1",
         "birthRetain": "true",
-        "birthPayload": "{\"v\":1,\"tipo_msg\":\"HEARTBEAT\",\"dispositivo\":\"central\",\"online\":true}",
+        "birthPayload": "{\"v\":1,\"tipo_msg\":\"STATUS\",\"dispositivo\":\"central\",\"online\":true}",
         "birthMsg": {},
         "closeTopic": "motiva/rm563567/central",
         "closeQos": "1",
@@ -111,8 +111,8 @@
         "tabs": [],
         "order": 1,
         "className": "",
-        "visible": "true",
-        "disabled": "false"
+        "visible": true,
+        "disabled": false
     },
     {
         "id": "829390bde57d878d",
@@ -130,11 +130,51 @@
         "tab": ""
     },
     {
-        "id": "8e3aa700b1638753",
+        "id": "5732bbb94f64c449",
+        "type": "ui-group",
+        "name": "Ocorrências",
+        "page": "e81b63a6596f2f8f",
+        "width": 12,
+        "height": 1,
+        "order": 2,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default",
+        "tab": ""
+    },
+    {
+        "id": "4cf6a64d6134a855",
+        "type": "ui-group",
+        "name": "Comandos",
+        "page": "e81b63a6596f2f8f",
+        "width": 12,
+        "height": 1,
+        "order": 3,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default",
+        "tab": ""
+    },
+    {
+        "id": "cef7d5c860ae2233",
+        "type": "comment",
+        "z": "0acef594f62d9032",
+        "name": "2 · eventos → ocorrências (event_id + revisao) · 3 · tabela e seleção",
+        "info": "",
+        "x": 380,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "e61c1a3ecf089eb4",
         "type": "mqtt in",
-        "z": "c1acac5a23e5b45f",
+        "z": "0acef594f62d9032",
         "name": "",
-        "topic": "motiva/rm563567/teste",
+        "topic": "motiva/rm563567/eventos",
         "qos": "1",
         "datatype": "auto-detect",
         "broker": "5fed12d25747ca76",
@@ -142,35 +182,62 @@
         "rap": true,
         "rh": 0,
         "inputs": 0,
-        "x": 600,
-        "y": 220,
+        "x": 200,
+        "y": 250,
         "wires": [
             [
-                "a070192b1aa7e183"
+                "fbc2906f664aa6f5"
             ]
         ]
     },
     {
-        "id": "a070192b1aa7e183",
-        "type": "debug",
-        "z": "c1acac5a23e5b45f",
-        "name": "debug 1",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 820,
-        "y": 220,
-        "wires": []
+        "id": "fbc2906f664aa6f5",
+        "type": "function",
+        "z": "0acef594f62d9032",
+        "name": "Registrar evento",
+        "func": "// Registra/atualiza a ocorrência pelo event_id (idempotente) e dispara SUSPEITA para eventos novos.\nlet ev = msg.payload;\nif (typeof ev === \"string\") { try { ev = JSON.parse(ev); } catch (e) { node.warn(\"JSON inválido em eventos\"); return null; } }\nif (!ev || typeof ev !== \"object\" || !ev.event_id) { node.warn(\"Evento sem event_id\"); return null; }\nif (ev.tipo === \"SEM_ACIDENTE\") return null;          // não vira ocorrência\n\nconst oc  = flow.get(\"ocorrencias\", \"file\") || {};\nconst old = oc[ev.event_id];\nconst rev = Number(ev.revisao ?? 1);\n\nif (old && [\"ENCERRADO\", \"REJEITADO\"].includes(old.estado)) {   // terminais: nunca reabrem\n    node.status({ fill: \"grey\", shape: \"ring\", text: \"ignorado (terminal) \" + ev.event_id });\n    return null;\n}\nif (old && rev <= old.revisao) {                                // duplicata ou revisão antiga\n    node.status({ fill: \"grey\", shape: \"ring\", text: \"duplicata \" + ev.event_id });\n    return null;\n}\n\nconst conf = (ev.confianca && typeof ev.confianca === \"object\")\n    ? ev.confianca\n    : { valor: ev.confianca, nivel: ev.nivel_confianca };   // contrato v0.2: confianca (0-1) + nivel_confianca\nconst agora = new Date().toISOString();\noc[ev.event_id] = {\n    event_id: ev.event_id, revisao: rev,\n    timestamp: ev.timestamp, camera_id: ev.camera_id, local: ev.local,\n    tipo: ev.tipo, confianca: conf, indicadores: ev.indicadores,\n    recomendacao: ev.recomendacao, evidencia: ev.evidencia,\n    recebido_em: old ? old.recebido_em : agora, atualizado_em: agora,\n    estado: old ? old.estado : \"SUSPEITA\"        // a central é dona do estado\n};\nflow.set(\"ocorrencias\", oc, \"file\");\nnode.status({ fill: \"green\", shape: \"dot\", text: (old ? \"atualizado \" : \"novo \") + ev.event_id + \" r\" + rev });\n\nconst novo = !old;\nreturn [{ payload: \"refresh\" },\n        novo ? { cmd: { event_id: ev.event_id, acao: \"SUSPEITA\" } } : null];\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 250,
+        "wires": [
+            [
+                "75c1762a0fc7e106"
+            ],
+            [
+                "26ca721460b836cb"
+            ]
+        ]
     },
     {
-        "id": "107cdf316d53af6f",
+        "id": "75c1762a0fc7e106",
+        "type": "function",
+        "z": "0acef594f62d9032",
+        "name": "Montar tabela de ocorrências",
+        "func": "// Monta as linhas da tabela de ocorrências (mais recentes primeiro)\n// Justificativa da matriz de recomendação (docs/contrato_mqtt.md, seção 4) - regras fictícias, não é protocolo médico\nconst MATRIZ = {\n    R1: \"Acidente detectado sem indicador adicional de risco: solicitar avaliação da equipe operacional\",\n    R2: \"Colisão com veículo parado na pista (indicador de risco): sugerir ambulância na simulação\",\n    R3: \"Possível atropelamento: sugerir avaliação prioritária e recurso adicional de resgate\",\n    R4: \"Imagem ambígua ou confiança média: revisão do operador sem concluir tipo ou gravidade\"\n};\nconst oc = flow.get(\"ocorrencias\", \"file\") || {};\nconst fmt = d => {\n    if (!d) return \"—\";\n    const t = new Date(d);\n    return isNaN(t) ? String(d) : t.toLocaleString(\"pt-BR\", { timeZone: \"America/Sao_Paulo\" });\n};\nmsg.payload = Object.values(oc)\n    .sort((a, b) => (b.recebido_em || \"\").localeCompare(a.recebido_em || \"\"))\n    .map(o => ({\n        event_id: o.event_id,\n        rev: o.revisao,\n        horario: fmt(o.timestamp),\n        tipo: o.tipo,\n        confianca: (o.confianca && o.confianca.valor != null && !isNaN(o.confianca.valor))\n            ? Math.round(o.confianca.valor * 100) + \"% (\" + (o.confianca.nivel || \"-\") + \")\" : \"—\",\n        local: o.local || \"—\",\n        regra: o.recomendacao?.regra || \"—\",\n        recurso: o.recomendacao?.recurso || \"—\",\n        justificativa: o.recomendacao?.justificativa || MATRIZ[o.recomendacao?.regra] || \"—\",\n        evidencia: o.evidencia\n            ? (o.evidencia.video || \"?\") + \" @ \" + (o.evidencia.tempo_s ?? o.evidencia.instante_s ?? \"?\") + \" s\"\n            : \"—\",\n        estado: o.estado\n    }));\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 250,
+        "wires": [
+            [
+                "676c528bd53d9642"
+            ]
+        ]
+    },
+    {
+        "id": "86ad94fdabf9fd3a",
         "type": "inject",
-        "z": "c1acac5a23e5b45f",
-        "name": "",
+        "z": "0acef594f62d9032",
+        "name": "atualizar tabela ao iniciar",
         "props": [
             {
                 "p": "payload"
@@ -182,47 +249,218 @@
         ],
         "repeat": "",
         "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "ola motiva",
+        "once": true,
+        "onceDelay": 1,
+        "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 1110,
-        "y": 180,
+        "x": 440,
+        "y": 310,
         "wires": [
             [
-                "9fe501b39f8b58f9"
+                "75c1762a0fc7e106"
             ]
         ]
     },
     {
-        "id": "9fe501b39f8b58f9",
-        "type": "mqtt out",
-        "z": "c1acac5a23e5b45f",
+        "id": "676c528bd53d9642",
+        "type": "ui-table",
+        "z": "0acef594f62d9032",
+        "group": "5732bbb94f64c449",
         "name": "",
-        "topic": "motiva/rm563567/teste",
-        "qos": "",
-        "retain": "",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "5fed12d25747ca76",
-        "x": 1220,
+        "label": "Ocorrências",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "maxrows": 0,
+        "passthru": false,
+        "autocols": false,
+        "showSearch": true,
+        "deselect": true,
+        "selectionType": "click",
+        "columns": [
+            {
+                "title": "Evento",
+                "key": "event_id",
+                "keyType": "key",
+                "type": "text",
+                "width": "",
+                "align": "start"
+            },
+            {
+                "title": "Rev",
+                "key": "rev",
+                "keyType": "key",
+                "type": "text",
+                "width": "",
+                "align": "start"
+            },
+            {
+                "title": "Horário",
+                "key": "horario",
+                "keyType": "key",
+                "type": "text",
+                "width": "",
+                "align": "start"
+            },
+            {
+                "title": "Tipo",
+                "key": "tipo",
+                "keyType": "key",
+                "type": "text",
+                "width": "",
+                "align": "start"
+            },
+            {
+                "title": "Confiança",
+                "key": "confianca",
+                "keyType": "key",
+                "type": "text",
+                "width": "",
+                "align": "start"
+            },
+            {
+                "title": "Local",
+                "key": "local",
+                "keyType": "key",
+                "type": "text",
+                "width": "",
+                "align": "start"
+            },
+            {
+                "title": "Regra",
+                "key": "regra",
+                "keyType": "key",
+                "type": "text",
+                "width": "",
+                "align": "start"
+            },
+            {
+                "title": "Recurso recomendado",
+                "key": "recurso",
+                "keyType": "key",
+                "type": "text",
+                "width": "",
+                "align": "start"
+            },
+            {
+                "title": "Justificativa",
+                "key": "justificativa",
+                "keyType": "key",
+                "type": "text",
+                "width": "",
+                "align": "start"
+            },
+            {
+                "title": "Evidência",
+                "key": "evidencia",
+                "keyType": "key",
+                "type": "text",
+                "width": "",
+                "align": "start"
+            },
+            {
+                "title": "Estado",
+                "key": "estado",
+                "keyType": "key",
+                "type": "text",
+                "width": "",
+                "align": "start"
+            }
+        ],
+        "mobileBreakpoint": "sm",
+        "mobileBreakpointType": "defaults",
+        "action": "replace",
+        "className": "",
+        "x": 1010,
+        "y": 250,
+        "wires": [
+            [
+                "fe264617b9e7b29d",
+                "9eeaa2211bbff0ad"
+            ]
+        ]
+    },
+    {
+        "id": "fe264617b9e7b29d",
+        "type": "debug",
+        "z": "0acef594f62d9032",
+        "name": "linha clicada",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1230,
+        "y": 210,
+        "wires": []
+    },
+    {
+        "id": "9eeaa2211bbff0ad",
+        "type": "function",
+        "z": "0acef594f62d9032",
+        "name": "Selecionar evento",
+        "func": "// Clique numa linha da tabela = seleciona a ocorrência (substitui o inject de teste)\nconst p = msg.payload;\nconst row = Array.isArray(p) ? p[0] : p;\nconst id = row && row.event_id;\nif (!id) return null;\nflow.set(\"evento_atual\", { event_id: id });\nconst ev = (flow.get(\"ocorrencias\", \"file\") || {})[id];\nmsg.payload = \"Selecionada: \" + id + (ev ? \" — \" + ev.tipo + \" (\" + ev.estado + \")\" : \"\");\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1230,
+        "y": 260,
+        "wires": [
+            [
+                "72ba2c7b6707de41"
+            ]
+        ]
+    },
+    {
+        "id": "72ba2c7b6707de41",
+        "type": "ui-text",
+        "z": "0acef594f62d9032",
+        "group": "829390bde57d878d",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Ocorrência selecionada",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#717171",
+        "wrapText": true,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 1450,
         "y": 260,
         "wires": []
     },
     {
-        "id": "f2452df8ad2810b3",
+        "id": "750a874991296c4d",
+        "type": "comment",
+        "z": "0acef594f62d9032",
+        "name": "4/5/9 · decisão do operador → histórico → comando",
+        "info": "",
+        "x": 380,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "3a6d101e00aeefa4",
         "type": "ui-button",
-        "z": "c1acac5a23e5b45f",
+        "z": "0acef594f62d9032",
         "group": "829390bde57d878d",
         "name": "",
         "label": "CONFIRMAR",
         "order": 4,
-        "width": 0,
-        "height": 0,
+        "width": 2,
+        "height": 1,
         "emulateClick": false,
         "tooltip": "",
         "color": "",
@@ -234,8 +472,8 @@
         "payloadType": "str",
         "topic": "topic",
         "topicType": "msg",
-        "buttonColor": "",
-        "textColor": "",
+        "buttonColor": "#2e7d32",
+        "textColor": "#ffffff",
         "iconColor": "",
         "enableClick": true,
         "enablePointerdown": false,
@@ -244,66 +482,24 @@
         "enablePointerup": false,
         "pointerupPayload": "",
         "pointerupPayloadType": "str",
-        "x": 540,
-        "y": 320,
+        "x": 200,
+        "y": 430,
         "wires": [
             [
-                "14d405c911289c21"
+                "a28cf37a81693095"
             ]
         ]
     },
     {
-        "id": "7e2bc156f29c4019",
-        "type": "mqtt out",
-        "z": "c1acac5a23e5b45f",
-        "name": "",
-        "topic": "motiva/rm563567/comandos",
-        "qos": "1",
-        "retain": "false",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "5fed12d25747ca76",
-        "x": 1160,
-        "y": 380,
-        "wires": []
-    },
-    {
-        "id": "8725b65147e797f1",
-        "type": "ui-text",
-        "z": "c1acac5a23e5b45f",
-        "group": "829390bde57d878d",
-        "order": 1,
-        "width": 0,
-        "height": 0,
-        "name": "",
-        "label": "Comando enviado",
-        "format": "{{msg.payload}}",
-        "layout": "row-spread",
-        "style": false,
-        "font": "",
-        "fontSize": 16,
-        "color": "#717171",
-        "wrapText": false,
-        "className": "",
-        "value": "payload",
-        "valueType": "msg",
-        "x": 1150,
-        "y": 440,
-        "wires": []
-    },
-    {
-        "id": "d21db951c5fbddd3",
+        "id": "c1132f3d4ba98ec8",
         "type": "ui-button",
-        "z": "c1acac5a23e5b45f",
+        "z": "0acef594f62d9032",
         "group": "829390bde57d878d",
         "name": "",
         "label": "REJEITAR",
-        "order": 2,
-        "width": 0,
-        "height": 0,
+        "order": 5,
+        "width": 2,
+        "height": 1,
         "emulateClick": false,
         "tooltip": "",
         "color": "",
@@ -315,8 +511,8 @@
         "payloadType": "str",
         "topic": "topic",
         "topicType": "msg",
-        "buttonColor": "",
-        "textColor": "",
+        "buttonColor": "#c62828",
+        "textColor": "#ffffff",
         "iconColor": "",
         "enableClick": true,
         "enablePointerdown": false,
@@ -325,24 +521,24 @@
         "enablePointerup": false,
         "pointerupPayload": "",
         "pointerupPayloadType": "str",
-        "x": 530,
-        "y": 380,
+        "x": 200,
+        "y": 480,
         "wires": [
             [
-                "14d405c911289c21"
+                "a28cf37a81693095"
             ]
         ]
     },
     {
-        "id": "4a417a5e7cad9b09",
+        "id": "308dab1577776281",
         "type": "ui-button",
-        "z": "c1acac5a23e5b45f",
+        "z": "0acef594f62d9032",
         "group": "829390bde57d878d",
         "name": "",
         "label": "ENCERRAR",
-        "order": 3,
-        "width": 0,
-        "height": 0,
+        "order": 6,
+        "width": 2,
+        "height": 1,
         "emulateClick": false,
         "tooltip": "",
         "color": "",
@@ -354,8 +550,8 @@
         "payloadType": "str",
         "topic": "topic",
         "topicType": "msg",
-        "buttonColor": "",
-        "textColor": "",
+        "buttonColor": "#546e7a",
+        "textColor": "#ffffff",
         "iconColor": "",
         "enableClick": true,
         "enablePointerdown": false,
@@ -364,41 +560,331 @@
         "enablePointerup": false,
         "pointerupPayload": "",
         "pointerupPayloadType": "str",
-        "x": 530,
-        "y": 440,
+        "x": 200,
+        "y": 530,
         "wires": [
             [
-                "14d405c911289c21"
+                "a28cf37a81693095"
             ]
         ]
     },
     {
-        "id": "14d405c911289c21",
+        "id": "a28cf37a81693095",
         "type": "function",
-        "z": "c1acac5a23e5b45f",
-        "name": "montar comando (contrato v0.2)",
-        "func": "// Monta o comando no formato do contrato v0.2 (docs/contrato_mqtt.md, secao 5.2)\nconst estados = {\n  CONFIRMAR: \"CONFIRMADO\",\n  REJEITAR:  \"NORMAL\",\n  ENCERRAR:  \"NORMAL\"\n};\n\nconst acao = msg.payload;\nif (!(acao in estados)) { node.warn(\"Acao desconhecida: \" + acao); return null; }\n\nconst ev = flow.get(\"evento_atual\");\nif (!ev || !ev.event_id) { node.warn(\"Nenhum evento selecionado\"); return null; }\n\n// seq = horario da central em ms, sempre crescente (nao zera se o Node-RED reiniciar)\nconst ultimo = flow.get(\"ultimo_seq\") || 0;\nconst seq = Math.max(Date.now(), ultimo + 1);\nflow.set(\"ultimo_seq\", seq);\n\n// command_id = cmd-AAAAMMDDTHHMMSS-<4 hex>\nconst d = new Date();\nconst p = n => String(n).padStart(2, \"0\");\nconst carimbo = `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}T${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;\nconst hex = Math.floor(Math.random() * 65536).toString(16).padStart(4, \"0\");\n\nmsg.payload = {\n  v: 1,\n  command_id: `cmd-${carimbo}-${hex}`,\n  seq: seq,\n  event_id: ev.event_id,\n  acao: acao,\n  estado_alvo: estados[acao]\n};\nreturn msg;",
+        "z": "0acef594f62d9032",
+        "name": "Aplicar decisão",
+        "func": "// Botões CONFIRMAR / REJEITAR / ENCERRAR: valida, muda o estado, grava o histórico e dispara o comando.\nconst REGRAS = {\n    CONFIRMAR: { de: [\"SUSPEITA\"],   para: \"CONFIRMADO\" },\n    REJEITAR:  { de: [\"SUSPEITA\"],   para: \"REJEITADO\"  },\n    ENCERRAR:  { de: [\"CONFIRMADO\"], para: \"ENCERRADO\"  }\n};\nconst acao = msg.payload;\nconst r = REGRAS[acao];\nif (!r) { node.warn(\"Ação desconhecida: \" + acao); return null; }\nconst aviso = t => [null, null, { payload: t }];\n\nconst sel = flow.get(\"evento_atual\");\nif (!sel || !sel.event_id) return aviso(\"⚠ Selecione uma ocorrência na tabela\");\nconst oc = flow.get(\"ocorrencias\", \"file\") || {};\nconst ev = oc[sel.event_id];\nif (!ev) return aviso(\"⚠ Ocorrência não encontrada\");\nif (!r.de.includes(ev.estado)) return aviso(\"⚠ \" + acao + \" não permitido: ocorrência está \" + ev.estado);\n\nconst anterior = ev.estado;\nconst agora = new Date().toISOString();\nev.estado = r.para;\nev.atualizado_em = agora;\nflow.set(\"ocorrencias\", oc, \"file\");\n\nconst h = flow.get(\"historico\", \"file\") || [];\nh.push({ ts: agora, event_id: ev.event_id, acao: acao,\n         estado_anterior: anterior, estado_novo: ev.estado, operador: \"operador-dashboard\" });\nflow.set(\"historico\", h, \"file\");\n\nreturn [{ cmd: { event_id: ev.event_id, acao: acao } },\n        { payload: \"refresh\" },\n        { payload: \"✔ \" + acao + \" registrado em \" + ev.event_id + \" (\" + anterior + \" → \" + ev.estado + \")\" }];\n",
+        "outputs": 3,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 480,
+        "wires": [
+            [
+                "26ca721460b836cb"
+            ],
+            [
+                "75c1762a0fc7e106"
+            ],
+            [
+                "bb93e848dfce3d76"
+            ]
+        ]
+    },
+    {
+        "id": "bb93e848dfce3d76",
+        "type": "ui-text",
+        "z": "0acef594f62d9032",
+        "group": "829390bde57d878d",
+        "order": 7,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Aviso",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#717171",
+        "wrapText": true,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 740,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "26ca721460b836cb",
+        "type": "function",
+        "z": "0acef594f62d9032",
+        "name": "Montar comando",
+        "func": "// Único ponto de criação de comandos (contrato v0.2): SUSPEITA, CONFIRMAR, REJEITAR, ENCERRAR, SINCRONIZAR.\n// entrada: msg.cmd = { event_id, acao }\nconst c = msg.cmd;\nif (!c || !c.acao) return null;\n\n// estado_alvo considera TODAS as ocorrências: CONFIRMADO > SUSPEITA > NORMAL\nconst ocs = Object.values(flow.get(\"ocorrencias\", \"file\") || {});\nconst estado_alvo = ocs.some(o => o.estado === \"CONFIRMADO\") ? \"CONFIRMADO\"\n                  : ocs.some(o => o.estado === \"SUSPEITA\")   ? \"SUSPEITA\" : \"NORMAL\";\n\n// seq = horário em ms, sempre crescente (não zera se reiniciar)\nconst ultimo = flow.get(\"ultimo_seq\", \"file\") || 0;\nconst seq = Math.max(Date.now(), ultimo + 1);\nflow.set(\"ultimo_seq\", seq, \"file\");\n\n// command_id = cmd-AAAAMMDDTHHMMSS-<4 hex>\nconst d = new Date();\nconst p = n => String(n).padStart(2, \"0\");\nconst carimbo = `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}T${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;\nconst hex = Math.floor(Math.random() * 65536).toString(16).padStart(4, \"0\");\n\nconst cmd = { v: 1, command_id: `cmd-${carimbo}-${hex}`, seq: seq,\n              event_id: c.event_id ?? null, acao: c.acao, estado_alvo: estado_alvo };\n\n// registro local para acompanhar ENVIADO → RECEBIDO → APLICADO\nconst cmds = flow.get(\"comandos\", \"file\") || {};\ncmds[cmd.command_id] = { ...cmd, enviado_em: d.toISOString(), status: \"ENVIADO\" };\nconst ids = Object.keys(cmds);\nif (ids.length > 50) ids.slice(0, ids.length - 50).forEach(k => delete cmds[k]);\nflow.set(\"comandos\", cmds, \"file\");\n\ndelete msg.cmd;\nmsg.payload = cmd;\nreturn msg;\n",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 720,
-        "y": 380,
+        "x": 740,
+        "y": 440,
         "wires": [
             [
-                "7e2bc156f29c4019",
-                "244c8ad33626f4ed",
-                "edb25472d58e173d"
+                "57180743fa5f0f0a",
+                "610765b12fb69ae2",
+                "a8aaa9abcb28f460",
+                "f178cce4a8186f34"
             ]
         ]
     },
     {
-        "id": "b1806f0cef974ecf",
-        "type": "inject",
-        "z": "c1acac5a23e5b45f",
+        "id": "57180743fa5f0f0a",
+        "type": "mqtt out",
+        "z": "0acef594f62d9032",
         "name": "",
+        "topic": "motiva/rm563567/comandos",
+        "qos": "1",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5fed12d25747ca76",
+        "x": 1000,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "610765b12fb69ae2",
+        "type": "debug",
+        "z": "0acef594f62d9032",
+        "name": "comando publicado",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1000,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "a8aaa9abcb28f460",
+        "type": "change",
+        "z": "0acef594f62d9032",
+        "name": "texto do comando",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "\"Enviado: \" & payload.acao & \" → \" & payload.estado_alvo & \" (\" & payload.command_id & \")\"",
+                "tot": "jsonata"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1000,
+        "y": 480,
+        "wires": [
+            [
+                "ae7431b4ab5c287c"
+            ]
+        ]
+    },
+    {
+        "id": "ae7431b4ab5c287c",
+        "type": "ui-text",
+        "z": "0acef594f62d9032",
+        "group": "829390bde57d878d",
+        "order": 8,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Comando enviado",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#717171",
+        "wrapText": true,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 1230,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "71cf67d19569b9a7",
+        "type": "comment",
+        "z": "0acef594f62d9032",
+        "name": "6/8/10 · status do ESP32 (heartbeat · LWT · ACK · SYNC)",
+        "info": "",
+        "x": 380,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "7adad0d74f148e9c",
+        "type": "mqtt in",
+        "z": "0acef594f62d9032",
+        "name": "",
+        "topic": "motiva/rm563567/status",
+        "qos": "1",
+        "datatype": "auto-detect",
+        "broker": "5fed12d25747ca76",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 200,
+        "y": 700,
+        "wires": [
+            [
+                "fc590ea3fe51b8d4",
+                "e6b1c765052f3a8f",
+                "81c08b9d7bec6f77",
+                "162a45344649207a"
+            ]
+        ]
+    },
+    {
+        "id": "fc590ea3fe51b8d4",
+        "type": "function",
+        "z": "0acef594f62d9032",
+        "name": "interpretar ACK",
+        "func": "// Texto do último ACK (HEARTBEAT, SYNC e LWT são tratados em outros nós)\nconst p = msg.payload;\nif (!p || p.tipo_msg !== \"ACK\") return null;\n\nif (p.duplicado) {\n  msg.payload = `Duplicado, ignorado pelo ESP32: ${p.command_id}`;\n} else if (p.fase === \"APLICADO\") {\n  msg.payload = `APLICADO pelo ESP32: ${p.command_id} (${p.estado})`;\n} else {\n  msg.payload = `RECEBIDO pelo ESP32 (ainda não aplicado): ${p.command_id}`;\n}\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 660,
+        "wires": [
+            [
+                "43b53f06a945eb41"
+            ]
+        ]
+    },
+    {
+        "id": "43b53f06a945eb41",
+        "type": "ui-text",
+        "z": "0acef594f62d9032",
+        "group": "829390bde57d878d",
+        "order": 9,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Último ACK do ESP32",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#717171",
+        "wrapText": true,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 740,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "e6b1c765052f3a8f",
+        "type": "function",
+        "z": "0acef594f62d9032",
+        "name": "Atualizar conexão",
+        "func": "// Alimenta o estado da conexão com o ESP32 (heartbeat, LWT, ACK, SYNC). Sem saída.\nconst p = msg.payload;\nif (!p || typeof p !== \"object\") return null;\nconst esp = flow.get(\"esp32\") || { online: false, ultimo_contato: null, motivo: \"sem contato\" };\nif (p.tipo_msg === \"LWT\") {\n    if (p.online === false) { esp.online = false; esp.motivo = \"LWT\"; }          // vale mesmo se retido\n    else if (!msg.retain)   { esp.online = true; esp.ultimo_contato = Date.now(); }\n} else if (!msg.retain) {                                                        // retido = mensagem velha\n    esp.online = true;\n    esp.ultimo_contato = Date.now();\n}\nflow.set(\"esp32\", esp);\nreturn null;\n",
+        "outputs": 0,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 710,
+        "wires": []
+    },
+    {
+        "id": "81c08b9d7bec6f77",
+        "type": "function",
+        "z": "0acef594f62d9032",
+        "name": "Tratar SYNC",
+        "func": "// Quando o ESP32 manda SYNC, responde com o comando SINCRONIZAR e o estado atual\nconst p = msg.payload;\nif (!p || p.tipo_msg !== \"SYNC\") return null;\nif (Date.now() - (flow.get(\"ultimo_sync\") || 0) < 2000) return null;     // limita a taxa\nflow.set(\"ultimo_sync\", Date.now());\nconst v = Object.values(flow.get(\"ocorrencias\", \"file\") || {});\nconst ativo = v.find(o => o.estado === \"CONFIRMADO\") || v.find(o => o.estado === \"SUSPEITA\");\nreturn { cmd: { event_id: ativo ? ativo.event_id : null, acao: \"SINCRONIZAR\" } };\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 760,
+        "wires": [
+            [
+                "26ca721460b836cb"
+            ]
+        ]
+    },
+    {
+        "id": "162a45344649207a",
+        "type": "function",
+        "z": "0acef594f62d9032",
+        "name": "Registrar ACK",
+        "func": "// ACK do ESP32: ENVIADO -> RECEBIDO -> APLICADO (só APLICADO conta como execução confirmada)\nconst p = msg.payload;\nif (!p || p.tipo_msg !== \"ACK\" || !p.command_id) return null;\nif (p.duplicado) return null;                      // ACK de comando duplicado não muda o status\nconst cmds = flow.get(\"comandos\", \"file\") || {};\nconst c = cmds[p.command_id];\nif (!c) { node.warn(\"ACK de comando desconhecido: \" + p.command_id); return null; }\nconst agora = new Date().toISOString();\nif (p.fase === \"RECEBIDO\" && !c.recebido_em) c.recebido_em = agora;\nif (p.fase === \"APLICADO\") { c.aplicado_em = agora; c.recebido_em = c.recebido_em || agora; }\nc.status = c.aplicado_em ? \"APLICADO\" : c.recebido_em ? \"RECEBIDO\" : \"ENVIADO\";\nflow.set(\"comandos\", cmds, \"file\");\nreturn { payload: \"refresh\" };\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 810,
+        "wires": [
+            [
+                "f178cce4a8186f34"
+            ]
+        ]
+    },
+    {
+        "id": "f178cce4a8186f34",
+        "type": "function",
+        "z": "0acef594f62d9032",
+        "name": "Montar tabela de comandos",
+        "func": "// Tabela de comandos: enviado × recebido × aplicado\nconst cmds = flow.get(\"comandos\", \"file\") || {};\nconst fmt = d => d ? new Date(d).toLocaleTimeString(\"pt-BR\", { timeZone: \"America/Sao_Paulo\" }) : \"—\";\nmsg.payload = Object.values(cmds)\n    .sort((a, b) => (b.enviado_em || \"\").localeCompare(a.enviado_em || \"\"))\n    .map(c => ({\n        command_id: c.command_id, acao: c.acao, event_id: c.event_id ?? \"—\",\n        estado_alvo: c.estado_alvo, enviado: fmt(c.enviado_em),\n        recebido: fmt(c.recebido_em), aplicado: fmt(c.aplicado_em), status: c.status\n    }));\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 810,
+        "wires": [
+            [
+                "418b3433c61505f7"
+            ]
+        ]
+    },
+    {
+        "id": "ced6201394fde4e0",
+        "type": "inject",
+        "z": "0acef594f62d9032",
+        "name": "atualizar tabela ao iniciar",
         "props": [
             {
                 "p": "payload"
@@ -410,147 +896,372 @@
         ],
         "repeat": "",
         "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": " ",
-        "payload": " {\"event_id\":\"evt-teste-001\"}",
-        "payloadType": "json",
-        "x": 620,
-        "y": 520,
+        "once": true,
+        "onceDelay": 1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 480,
+        "y": 860,
         "wires": [
             [
-                "f5383b4a131ca5a0"
+                "f178cce4a8186f34"
             ]
         ]
     },
     {
-        "id": "f5383b4a131ca5a0",
-        "type": "function",
-        "z": "c1acac5a23e5b45f",
-        "name": "function 2",
-        "func": "let ev = msg.payload;\nif (typeof ev === \"string\") {\n  try { ev = JSON.parse(ev); }\n  catch (e) { node.warn(\"JSON inválido: \" + msg.payload); return null; }\n}\nflow.set(\"evento_atual\", ev);\nnode.warn(\"evento_atual gravado: \" + JSON.stringify(ev));\nreturn null;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 920,
-        "y": 520,
+        "id": "418b3433c61505f7",
+        "type": "ui-table",
+        "z": "0acef594f62d9032",
+        "group": "4cf6a64d6134a855",
+        "name": "",
+        "label": "Comandos (enviado × recebido × aplicado)",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "maxrows": 0,
+        "passthru": false,
+        "autocols": false,
+        "showSearch": true,
+        "deselect": true,
+        "selectionType": "none",
+        "columns": [
+            {
+                "title": "Comando",
+                "key": "command_id",
+                "keyType": "key",
+                "type": "text",
+                "width": "",
+                "align": "start"
+            },
+            {
+                "title": "Ação",
+                "key": "acao",
+                "keyType": "key",
+                "type": "text",
+                "width": "",
+                "align": "start"
+            },
+            {
+                "title": "Evento",
+                "key": "event_id",
+                "keyType": "key",
+                "type": "text",
+                "width": "",
+                "align": "start"
+            },
+            {
+                "title": "Estado alvo",
+                "key": "estado_alvo",
+                "keyType": "key",
+                "type": "text",
+                "width": "",
+                "align": "start"
+            },
+            {
+                "title": "Enviado",
+                "key": "enviado",
+                "keyType": "key",
+                "type": "text",
+                "width": "",
+                "align": "start"
+            },
+            {
+                "title": "Recebido",
+                "key": "recebido",
+                "keyType": "key",
+                "type": "text",
+                "width": "",
+                "align": "start"
+            },
+            {
+                "title": "Aplicado",
+                "key": "aplicado",
+                "keyType": "key",
+                "type": "text",
+                "width": "",
+                "align": "start"
+            },
+            {
+                "title": "Status",
+                "key": "status",
+                "keyType": "key",
+                "type": "text",
+                "width": "",
+                "align": "start"
+            }
+        ],
+        "mobileBreakpoint": "sm",
+        "mobileBreakpointType": "defaults",
+        "action": "replace",
+        "className": "",
+        "x": 1010,
+        "y": 810,
         "wires": [
             []
         ]
     },
     {
-        "id": "244c8ad33626f4ed",
-        "type": "debug",
-        "z": "c1acac5a23e5b45f",
-        "name": "debug 2",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 880,
-        "y": 320,
+        "id": "6ad291027366b44b",
+        "type": "comment",
+        "z": "0acef594f62d9032",
+        "name": "6 · conexão ESP32 (timeout 15 s) · 7 · heartbeat da central (10 s, retido)",
+        "info": "",
+        "x": 380,
+        "y": 930,
         "wires": []
     },
     {
-        "id": "edb25472d58e173d",
-        "type": "change",
-        "z": "c1acac5a23e5b45f",
-        "name": "",
-        "rules": [
+        "id": "fa502e51d965743a",
+        "type": "inject",
+        "z": "0acef594f62d9032",
+        "name": "a cada 1 s",
+        "props": [
             {
-                "t": "set",
-                "p": "payload",
-                "pt": "msg",
-                "to": "  \"Enviado: \" & payload.acao & \" (\" & payload.command_id & \")\"",
-                "tot": "jsonata"
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
             }
         ],
-        "action": "",
-        "property": "",
-        "from": "",
-        "to": "",
-        "reg": false,
-        "x": 910,
-        "y": 440,
+        "repeat": "1",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 200,
+        "y": 990,
         "wires": [
             [
-                "8725b65147e797f1"
+                "782119bfa790212c"
             ]
         ]
     },
     {
-        "id": "b130ac7c5a8fc429",
-        "type": "mqtt in",
-        "z": "c1acac5a23e5b45f",
-        "name": "",
-        "topic": "motiva/rm563567/status",
-        "qos": "1",
-        "datatype": "auto-detect",
-        "broker": "5fed12d25747ca76",
-        "nl": false,
-        "rap": true,
-        "rh": 0,
-        "inputs": 0,
-        "x": 640,
-        "y": 620,
-        "wires": [
-            [
-                "3ab8193ec07bf2ab"
-            ]
-        ]
-    },
-    {
-        "id": "3ab8193ec07bf2ab",
+        "id": "782119bfa790212c",
         "type": "function",
-        "z": "c1acac5a23e5b45f",
-        "name": "interpretar ACK",
-        "func": "// So ACKs interessam aqui (HEARTBEAT, SYNC e LWT sao tratados em outro lugar)\nconst p = msg.payload;\nif (!p || p.tipo_msg !== \"ACK\") return null;\n\nif (p.duplicado) {\n  msg.payload = `Duplicado, ignorado pelo ESP32: ${p.command_id}`;\n} else if (p.fase === \"APLICADO\") {\n  msg.payload = `Aplicado pelo ESP32: ${p.command_id} (${p.estado})`;\n} else {\n  msg.payload = `Recebido pelo ESP32: ${p.command_id}`;\n}\nreturn msg;",
-        "outputs": 1,
+        "z": "0acef594f62d9032",
+        "name": "Exibir conexão",
+        "func": "// A cada 1 s: mostra conectado/desconectado (timeout 15 s) e o estado global.\nconst esp = flow.get(\"esp32\") || { online: false, ultimo_contato: null, motivo: \"sem contato\" };\nif (esp.online && Date.now() - esp.ultimo_contato > 15000) {\n    esp.online = false; esp.motivo = \"timeout 15 s\"; flow.set(\"esp32\", esp);\n}\nconst hora = esp.ultimo_contato\n    ? new Date(esp.ultimo_contato).toLocaleTimeString(\"pt-BR\", { timeZone: \"America/Sao_Paulo\" }) : \"—\";\nconst t1 = (esp.online ? \"🟢 CONECTADO\" : \"🔴 DESCONECTADO\") + \" | último contato: \" + hora + (esp.online ? \"\" : \" (\" + esp.motivo + \")\");\n\nconst v = Object.values(flow.get(\"ocorrencias\", \"file\") || {});\nconst nc = v.filter(o => o.estado === \"CONFIRMADO\").length;\nconst ns = v.filter(o => o.estado === \"SUSPEITA\").length;\nconst eg = nc ? \"CONFIRMADO\" : ns ? \"SUSPEITA\" : \"NORMAL\";\nconst t2 = eg + \" — \" + nc + \" confirmada(s), \" + ns + \" suspeita(s)\";\nreturn [{ payload: t1 }, { payload: t2 }];\n",
+        "outputs": 2,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 840,
-        "y": 620,
+        "x": 440,
+        "y": 990,
         "wires": [
             [
-                "f70ecbf69e99223e"
+                "8c954ac39497507c"
+            ],
+            [
+                "3c47fdc659da0b74"
             ]
         ]
     },
     {
-        "id": "f70ecbf69e99223e",
+        "id": "8c954ac39497507c",
         "type": "ui-text",
-        "z": "c1acac5a23e5b45f",
+        "z": "0acef594f62d9032",
         "group": "829390bde57d878d",
-        "order": 0,
+        "order": 1,
         "width": 0,
         "height": 0,
         "name": "",
-        "label": "Confirmado pelo ESP32",
+        "label": "ESP32",
         "format": "{{msg.payload}}",
         "layout": "row-spread",
         "style": false,
         "font": "",
         "fontSize": 16,
         "color": "#717171",
-        "wrapText": false,
+        "wrapText": true,
         "className": "",
         "value": "payload",
         "valueType": "msg",
-        "x": 1130,
-        "y": 620,
+        "x": 700,
+        "y": 970,
         "wires": []
     },
     {
-        "id": "37af552192a96893",
+        "id": "3c47fdc659da0b74",
+        "type": "ui-text",
+        "z": "0acef594f62d9032",
+        "group": "829390bde57d878d",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Estado global",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#717171",
+        "wrapText": true,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 700,
+        "y": 1020,
+        "wires": []
+    },
+    {
+        "id": "2bc714a33fb8dfb5",
+        "type": "inject",
+        "z": "0acef594f62d9032",
+        "name": "a cada 10 s",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "10",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 3,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 200,
+        "y": 1090,
+        "wires": [
+            [
+                "69a8bd98a9650527"
+            ]
+        ]
+    },
+    {
+        "id": "69a8bd98a9650527",
+        "type": "function",
+        "z": "0acef594f62d9032",
+        "name": "Heartbeat central",
+        "func": "// Heartbeat da central (retido) a cada 10 s\nconst v = Object.values(flow.get(\"ocorrencias\", \"file\") || {});\nconst eg = v.some(o => o.estado === \"CONFIRMADO\") ? \"CONFIRMADO\"\n         : v.some(o => o.estado === \"SUSPEITA\")   ? \"SUSPEITA\" : \"NORMAL\";\nmsg.payload = { v: 1, tipo_msg: \"HEARTBEAT\", dispositivo: \"central\", online: true,\n                ts: new Date().toISOString(), estado_global: eg, intervalo_s: 10 };\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 1090,
+        "wires": [
+            [
+                "5245683c80032b2d"
+            ]
+        ]
+    },
+    {
+        "id": "5245683c80032b2d",
+        "type": "mqtt out",
+        "z": "0acef594f62d9032",
+        "name": "",
+        "topic": "motiva/rm563567/central",
+        "qos": "1",
+        "retain": "true",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5fed12d25747ca76",
+        "x": 700,
+        "y": 1090,
+        "wires": []
+    },
+    {
+        "id": "cceb4afc6c138b85",
+        "type": "comment",
+        "z": "0acef594f62d9032",
+        "name": "5 · exportar histórico (GET /historico)",
+        "info": "",
+        "x": 380,
+        "y": 1160,
+        "wires": []
+    },
+    {
+        "id": "40d22b764b2bad17",
+        "type": "http in",
+        "z": "0acef594f62d9032",
+        "name": "",
+        "url": "/historico",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 200,
+        "y": 1210,
+        "wires": [
+            [
+                "7d1de27dabf4ad8d"
+            ]
+        ]
+    },
+    {
+        "id": "7d1de27dabf4ad8d",
+        "type": "function",
+        "z": "0acef594f62d9032",
+        "name": "Exportar dados",
+        "func": "// GET /historico?tipo=decisoes|ocorrencias|comandos&fmt=csv|json\nconst q = (msg.req && msg.req.query) || {};\nconst tipo = String(q.tipo || \"decisoes\").toLowerCase();\nconst fmt = String(q.fmt || \"csv\").toLowerCase();\nlet dados, nome, base = [];\nif (tipo === \"ocorrencias\")      { dados = Object.values(flow.get(\"ocorrencias\", \"file\") || {}); nome = \"ocorrencias\"; }\nelse if (tipo === \"comandos\")    { dados = Object.values(flow.get(\"comandos\", \"file\") || {});    nome = \"comandos\"; }\nelse {\n    dados = flow.get(\"historico\", \"file\") || [];\n    nome = \"historico_decisoes\";\n    base = [\"ts\", \"event_id\", \"acao\", \"estado_anterior\", \"estado_novo\", \"operador\"];\n}\nconst stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, \"-\");\nif (fmt === \"json\") {\n    msg.payload = JSON.stringify(dados, null, 2);\n    msg.headers = { \"Content-Type\": \"application/json; charset=utf-8\",\n                    \"Content-Disposition\": `attachment; filename=${nome}_${stamp}.json` };\n} else {\n    const cols = [...new Set(base.concat(dados.flatMap(o => Object.keys(o))))];\n    const esc = v => '\"' + String((v !== null && typeof v === \"object\") ? JSON.stringify(v) : (v ?? \"\")).replace(/\"/g, '\"\"') + '\"';\n    msg.payload = \"\\ufeff\" + [cols.map(esc).join(\",\")].concat(dados.map(o => cols.map(c => esc(o[c])).join(\",\"))).join(\"\\r\\n\");\n    msg.headers = { \"Content-Type\": \"text/csv; charset=utf-8\",\n                    \"Content-Disposition\": `attachment; filename=${nome}_${stamp}.csv` };\n}\nmsg.statusCode = 200;\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 1210,
+        "wires": [
+            [
+                "336dde191c02a6a8"
+            ]
+        ]
+    },
+    {
+        "id": "336dde191c02a6a8",
+        "type": "http response",
+        "z": "0acef594f62d9032",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 700,
+        "y": 1210,
+        "wires": []
+    },
+    {
+        "id": "4b88418ba7a1314f",
+        "type": "ui-template",
+        "z": "0acef594f62d9032",
+        "group": "829390bde57d878d",
+        "page": "",
+        "ui": "",
+        "name": "Exportar",
+        "order": 10,
+        "width": 0,
+        "height": 0,
+        "head": "",
+        "format": "<template>\n  <div style=\"display:flex; flex-wrap:wrap; gap:8px; align-items:center\">\n    <span style=\"font-weight:600\">Exportar:</span>\n    <v-btn size=\"small\" href=\"/historico?tipo=decisoes&amp;fmt=csv\" download>Decisões CSV</v-btn>\n    <v-btn size=\"small\" href=\"/historico?tipo=decisoes&amp;fmt=json\" download>Decisões JSON</v-btn>\n    <v-btn size=\"small\" href=\"/historico?tipo=ocorrencias&amp;fmt=json\" download>Ocorrências JSON</v-btn>\n    <v-btn size=\"small\" href=\"/historico?tipo=comandos&amp;fmt=json\" download>Comandos JSON</v-btn>\n  </div>\n</template>",
+        "storeOutMessages": true,
+        "passthru": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 200,
+        "y": 1260,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3c8a5213c6bad9b4",
         "type": "global-config",
         "env": [],
         "modules": {
