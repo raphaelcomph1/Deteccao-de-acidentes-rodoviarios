@@ -34,7 +34,7 @@ O broker é público: trafegam apenas dados fictícios e nenhuma imagem.
 
 ```
 .
-├── Agents.md                # instruções para agentes de código (regras do projeto e checklist)
+├── AGENTS.md                # instruções para agentes de código (regras do projeto e checklist)
 ├── README.md
 ├── visao/                   # módulo de visão computacional
 │   ├── main.py              # YOLO + ByteTrack em um vídeo; gera o CSV de trajetórias
@@ -141,7 +141,7 @@ python avaliar.py --conjunto RESERVADO    # só para a avaliação final
 ### Regras do projeto
 
 As regras do módulo de visão (por exemplo: nunca classificar pelo nome do arquivo, nunca ler o gabarito
-fora do `avaliar.py`, nunca usar os vídeos RESERVADOS para ajustes) estão no `Agents.md`.
+fora do `avaliar.py`, nunca usar os vídeos RESERVADOS para ajustes) estão no `AGENTS.md`.
 
 ## Central
 

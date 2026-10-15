@@ -96,6 +96,7 @@ def resumir(resultados):
 
 def avaliar(gabarito, conjunto, pasta_videos, config, analisar=analisar_video, pasta_saida=None, agora=None):
     """Avalia os videos do gabarito. Devolve (resultados, resumo, caminho_csv)."""
+    conjunto = conjunto.strip().upper() if conjunto else None
     resultados = []
     for linha in ler_gabarito(gabarito, conjunto):
         esperado = linha["rotulo_esperado"].strip()
@@ -151,7 +152,7 @@ def imprimir_resumo(resumo, caminho_csv):
 
 def main():
     ap = argparse.ArgumentParser(description="Avalia o pipeline de visao contra o gabarito")
-    ap.add_argument("--conjunto", choices=["AJUSTE", "RESERVADO"], help="filtra por conjunto (padrao: todos)")
+    ap.add_argument("--conjunto", type=str.upper, choices=["AJUSTE", "RESERVADO"], help="filtra por conjunto (padrao: todos)")
     ap.add_argument("--gabarito", default="../dados/gabarito.csv")
     ap.add_argument("--videos", default="../videos", help="pasta com os videos citados no gabarito")
     ap.add_argument("--config", default="config.yaml")
