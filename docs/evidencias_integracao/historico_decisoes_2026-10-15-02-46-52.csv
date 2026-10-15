@@ -1,0 +1,4 @@
+﻿"ts","event_id","acao","estado_anterior","estado_novo","operador"
+"2026-10-15T02:43:20.423Z","evt-CAM01-20261014T234249-999d","CONFIRMAR","SUSPEITA","CONFIRMADO","operador-dashboard"
+"2026-10-15T02:43:34.154Z","evt-CAM01-20261014T234249-999d","ENCERRAR","CONFIRMADO","ENCERRADO","operador-dashboard"
+"2026-10-15T02:44:54.056Z","evt-CAM02-20261014T234431-b94a","REJEITAR","SUSPEITA","REJEITADO","operador-dashboard"
