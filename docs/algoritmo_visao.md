@@ -169,5 +169,12 @@ Cenas sintéticas (`testar_classificador.py`):
 
 ## 6. Ajustes feitos com os vídeos de AJUSTE
 
+**Ajustes planejados para a Etapa 4 (ainda não aplicados):**
+
+- A penalidade de tracking instável (`penal_continuidade_track`) deve medir a continuidade **só antes do contato**.
+  Justificativa geral: a instabilidade depois do contato é consequência da própria colisão (as caixas se fundem
+  no impacto e os IDs mudam), não sinal de vídeo ruim; penalizar isso pune justamente os acidentes mais
+  violentos. Antes do contato, buracos de detecção e troca de ID continuam indicando imagem ruim.
+
 Ainda nenhum ajuste de pesos ou limiares na Etapa 2 (os valores acima são os iniciais, definidos por raciocínio).
 Os ajustes da Etapa 4 e a justificativa de cada um serão registrados aqui.

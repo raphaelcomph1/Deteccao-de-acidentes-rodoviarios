@@ -97,13 +97,17 @@ No Windows, o `pip` já instala o `torch` na versão CPU (foi o que usamos). A i
 
 Todos os comandos são executados dentro de `visao/`, com o ambiente virtual ativo.
 
-**`main.py`** — detecta e rastreia veículos e pessoas em um vídeo e grava o CSV de trajetórias brutas
-em `saida/logs/<video>_trajetorias.csv`.
+**`main.py`** — roda o pipeline completo (detecção, tracking, análise temporal e classificação) e publica os
+eventos no tópico `motiva/rm563567/eventos` do broker (contrato `docs/contrato_mqtt.md`). Um mesmo acidente mantém
+um único `event_id`; se a confiança aumentar, o evento é reenviado com `revisao` + 1. Grava o quadro de evidência
+em `saida/evidencias/<event_id>.jpg` (a imagem **não** trafega pelo broker), os eventos em
+`saida/eventos/<video>_eventos.jsonl` e o CSV de trajetórias brutas em `saida/logs/<video>_trajetorias.csv`.
 
 ```powershell
-python main.py --video ..\videos\video.mp4
-python main.py --video ..\videos\video.mp4 --mostrar          # abre janela com os IDs (q sai)
-python main.py --video ..\videos\video.mp4 --salvar-video     # grava vídeo anotado em saida/
+python main.py --video ..ideosideo_01.mp4 --sem-mqtt    # só analisa, não conecta no broker
+python main.py --video ..ideosideo_01.mp4               # analisa e publica no broker (avise o grupo antes)
+python main.py --video ..ideosideo_01.mp4 --mostrar     # abre janela com os IDs (q sai)
+python main.py --video ..ideosideo_01.mp4 --salvar-video  # grava vídeo anotado em saida/
 ```
 
 **`trajetorias.py`** — a partir do CSV do `main.py`, calcula posição, tamanho da caixa, velocidade
@@ -134,9 +138,10 @@ python avaliar.py --conjunto AJUSTE
 python avaliar.py --conjunto RESERVADO    # só para a avaliação final
 ```
 
-> **Estado atual:** a função `analisar_video()` do `avaliar.py` ainda não está implementada (é um `TODO`),
-> então rodá-lo hoje termina com uma mensagem de erro. O `testar_avaliar.py` testa o restante do script com
-> um gabarito falso. A análise temporal e o classificador de acidentes ainda não existem.
+O `avaliar.py` usa o mesmo pipeline do `main.py`, sem publicar no broker. O `testar_avaliar.py` testa o restante
+do script com um gabarito falso. Os demais testes (cenas sintéticas, sem vídeo): `testar_analise_temporal.py`,
+`testar_classificador.py` e `testar_eventos.py`. A explicação do algoritmo, com pesos e limitações, está em
+`docs/algoritmo_visao.md`.
 
 ### Regras do projeto
 

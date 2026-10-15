@@ -1,79 +1,54 @@
-"""Ponto de entrada: python main.py --video caminho.mp4 [--mostrar] [--salvar-video]"""
+"""Ponto de entrada: python main.py --video caminho.mp4 [--sem-mqtt] [--mostrar] [--salvar-video]
+
+Roda o pipeline completo (deteccao, tracking, analise temporal, classificacao) e publica os eventos
+no topico de eventos do broker (contrato MQTT v0.2). Com --sem-mqtt so analisa e imprime os eventos.
+Saidas em saida/: logs/<video>_trajetorias.csv, eventos/<video>_eventos.jsonl, evidencias/<event_id>.jpg.
+"""
 
 import argparse
-import csv
 from pathlib import Path
 
-import cv2
-
-from detector_tracker import DetectorTracker
+from eventos import validar_evento
+from pipeline import processar_video, salvar_eventos_jsonl
 from util import carregar_config
 
 
-def desenhar(quadro, tracks):
-    """Desenha caixa, classe e ID de cada track no quadro."""
-    for t in tracks:
-        x1, y1, x2, y2 = map(int, t["caixa"])
-        cv2.rectangle(quadro, (x1, y1), (x2, y2), (0, 255, 0), 2)
-        cv2.putText(quadro, f'{t["classe"]} #{t["id"]}', (x1, max(y1 - 6, 12)),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-    return quadro
-
-
 def main():
-    ap = argparse.ArgumentParser(description="Motiva Vision - deteccao e tracking")
+    ap = argparse.ArgumentParser(description="Motiva Vision - deteccao de acidentes em video")
     ap.add_argument("--video", required=True, help="caminho do video")
     ap.add_argument("--config", default="config.yaml")
+    ap.add_argument("--sem-mqtt", action="store_true", help="so analisa: nao conecta nem publica no broker")
     ap.add_argument("--mostrar", action="store_true", help="abre janela com o resultado (q sai)")
     ap.add_argument("--salvar-video", action="store_true", help="grava video anotado em saida/")
     args = ap.parse_args()
 
     config = carregar_config(args.config)
-    detector = DetectorTracker(config)
+    publicador = None
+    if not args.sem_mqtt:
+        from publicador_mqtt import PublicadorMqtt   # so importa o paho se for publicar
+        publicador = PublicadorMqtt(config)
+        if not publicador.conectar():
+            print("[mqtt] nao conectou ao broker; os eventos ficam pendentes e serao reenviados se a conexao voltar")
 
-    cap = cv2.VideoCapture(args.video)
-    if not cap.isOpened():
-        raise SystemExit(f"nao consegui abrir o video: {args.video}")
-    fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
-    largura = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    altura = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    try:
+        resultado = processar_video(args.video, config, publicador, salvar_logs=True,
+                                    mostrar=args.mostrar, salvar_video=args.salvar_video)
+    finally:
+        if publicador:
+            publicador.desconectar()
 
     nome = Path(args.video).stem
-    pasta_logs = Path(config["saida"]["logs"])
-    pasta_logs.mkdir(parents=True, exist_ok=True)
-    arq_csv = open(pasta_logs / f"{nome}_trajetorias.csv", "w", newline="", encoding="utf-8")
-    escritor = csv.writer(arq_csv)
-    escritor.writerow(["frame", "tempo_s", "track_id", "classe", "conf", "x1", "y1", "x2", "y2"])
-
-    gravador = None
-    if args.salvar_video:
-        destino = Path(config["saida"]["pasta"]) / f"{nome}_anotado.mp4"
-        gravador = cv2.VideoWriter(str(destino), cv2.VideoWriter_fourcc(*"mp4v"), fps, (largura, altura))
-
-    n = 0
-    while True:
-        ok, quadro = cap.read()
-        if not ok:
-            break
-        tracks = detector.rastrear(quadro)
-        for t in tracks:
-            escritor.writerow([n, round(n / fps, 3), t["id"], t["classe"], t["conf"], *t["caixa"]])
-        if args.mostrar or gravador:
-            desenhar(quadro, tracks)
-        if gravador:
-            gravador.write(quadro)
-        if args.mostrar:
-            cv2.imshow("Motiva Vision", quadro)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
-        n += 1
-
-    cap.release()
-    arq_csv.close()
-    if gravador:
-        gravador.release()
-    cv2.destroyAllWindows()
-    print(f"{n} quadros processados ({fps:.1f} fps). Log em {pasta_logs / (nome + '_trajetorias.csv')}")
+    caminho_eventos = Path(config["saida"]["pasta"]) / "eventos" / f"{nome}_eventos.jsonl"
+    salvar_eventos_jsonl(resultado["eventos"], caminho_eventos)
+    for evento in resultado["eventos"]:
+        problemas = validar_evento(evento)
+        if problemas:
+            print(f'[contrato] {evento["event_id"]} rev {evento["revisao"]}: {problemas}')
+    print(f'{resultado["quadros"]} quadros ({resultado["fps"]:.1f} fps). Resultado: {resultado["tipo"]} '
+          f'(confianca {resultado["confianca"]:.2f}), {len(resultado["eventos"])} mensagem(ns) de evento.')
+    print(f"Eventos em {caminho_eventos}")
+    if publicador and publicador.pendentes:
+        print(f"[mqtt] ATENCAO: {len(publicador.pendentes)} evento(s) nao foram publicados")
 
 
 if __name__ == "__main__":

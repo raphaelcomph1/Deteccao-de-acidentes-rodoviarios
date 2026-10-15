@@ -32,12 +32,15 @@ CAMPOS_RESULTADO = ["video", "conjunto", "rotulo_esperado", "resultado_obtido", 
 def analisar_video(caminho_video, config):
     """Roda o pipeline de deteccao em um video.
 
-    Deve devolver um dict com: tipo (um de TIPOS_IDX), confianca (0 a 1), event_id (ou None)
-    e instante_s (instante detectado, ou None). Recebe SOMENTE o caminho do video e a config.
+    Devolve um dict com: tipo (um de TIPOS_IDX), confianca (0 a 1), event_id (ou None)
+    e instante_s (instante do contato detectado, ou None). Recebe SOMENTE o caminho do video e a config.
+    Nao publica no broker.
     """
-    # TODO: implementar quando a analise temporal e o classificador existirem
-    # (detector_tracker -> trajetorias -> analise_temporal -> classificador -> eventos).
-    raise NotImplementedError("pipeline de deteccao ainda nao implementado")
+    from pipeline import processar_video   # importa aqui para o avaliar e os testes nao dependerem do ultralytics
+
+    resultado = processar_video(caminho_video, config)   # sem publicar no broker
+    return {"tipo": resultado["tipo"], "confianca": resultado["confianca"],
+            "event_id": resultado["event_id"], "instante_s": resultado["instante_s"]}
 
 
 def tipo_de_erro(esperado, obtido):
@@ -102,8 +105,6 @@ def avaliar(gabarito, conjunto, pasta_videos, config, analisar=analisar_video, p
         esperado = linha["rotulo_esperado"].strip()
         try:
             saida = analisar(Path(pasta_videos) / linha["video"], config)
-        except NotImplementedError:
-            raise
         except Exception as erro:  # um video com problema nao derruba a avaliacao inteira
             print(f"[aviso] {linha['video']}: falha ao analisar ({erro}); ignorado")
             continue
@@ -161,10 +162,7 @@ def main():
     if args.conjunto == "RESERVADO":
         print("[atencao] conjunto RESERVADO: so para a avaliacao final; nao use para ajustar limiares ou pesos.")
     config = carregar_config(args.config)
-    try:
-        _, resumo, caminho_csv = avaliar(args.gabarito, args.conjunto, args.videos, config)
-    except NotImplementedError as erro:
-        raise SystemExit(f"[erro] {erro}. Implemente analisar_video() em avaliar.py (veja o TODO).")
+    _, resumo, caminho_csv = avaliar(args.gabarito, args.conjunto, args.videos, config)
     imprimir_resumo(resumo, caminho_csv)
 
 
