@@ -49,6 +49,7 @@ Cadeia completa:
 6. **Nunca enviar imagens pelo broker** (é público). Só o caminho local do arquivo de evidência.
 7. **Nunca commitar** vídeos, credenciais, arquivos `.env` ou pesos de modelo grandes.
 8. **Vídeos de desenvolvimento nunca podem ser os mesmos dos 12 vídeos de teste** (AJUSTE e RESERVADO). Eles ficam em `dados/dev/` (ignorada pelo git) e são listados em `docs/videos_desenvolvimento.md` (arquivo, tipo, fonte, observação).
+9. **A pasta dos vídeos RESERVADOS chama-se `videos_reservado` (singular) e nunca pode ser aberta, listada ou executada** por agentes ou pelo código de desenvolvimento. Vídeos só são movidos para lá, nunca lidos. Os vídeos de AJUSTE ficam em `videos/` com o nome `video_NN.mp4` (padrão do gabarito).
 
 ## 5. Módulo de visão (`/visao`)
 

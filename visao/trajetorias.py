@@ -23,7 +23,7 @@ import cv2
 
 from util import carregar_config
 
-CAMPOS = ["frame", "tempo_s", "track_id", "classe", "cx", "cy", "largura", "altura",
+CAMPOS = ["frame", "tempo_s", "track_id", "classe", "conf", "cx", "cy", "largura", "altura",
           "vx", "vy", "velocidade_px_s", "velocidade_norm", "direcao_graus"]
 
 
@@ -38,48 +38,51 @@ def ler_tracks(caminho_csv):
     return por_track
 
 
-def media_movel(valores, janela):
-    """Media de cada valor com os (janela - 1) anteriores."""
-    recentes = deque(maxlen=janela)
-    saida = []
-    for v in valores:
-        recentes.append(v)
-        saida.append(sum(recentes) / len(recentes))
-    return saida
+class HistoricoTrack:
+    """Features de um track calculadas quadro a quadro (so usa quadros anteriores, serve para tempo real)."""
+
+    def __init__(self, track_id, fps, janela):
+        self.track_id = track_id
+        self.fps = fps
+        self.recentes = deque(maxlen=janela)   # ultimas caixas brutas, para a media movel
+        self.anterior = None                   # (quadro, cx, cy) do quadro anterior
+
+    def adicionar(self, quadro, classe, caixa, conf=None):
+        """Recebe a caixa (x1, y1, x2, y2) do quadro e devolve o dict de features suavizadas."""
+        self.recentes.append(caixa)
+        x1, y1, x2, y2 = (sum(c[i] for c in self.recentes) / len(self.recentes) for i in range(4))
+        cx, cy, larg, alt = (x1 + x2) / 2, (y1 + y2) / 2, x2 - x1, y2 - y1
+
+        vx = vy = vel = vel_norm = 0.0
+        direcao = ""
+        if self.anterior is not None:
+            dt = (quadro - self.anterior[0]) / self.fps
+            vx = (cx - self.anterior[1]) / dt
+            vy = (cy - self.anterior[2]) / dt
+            vel = math.hypot(vx, vy)
+            escala = math.sqrt(max(larg * alt, 1.0))
+            vel_norm = vel / escala
+            if vel > 0:
+                direcao = round(math.degrees(math.atan2(vy, vx)), 1)
+        self.anterior = (quadro, cx, cy)
+        return {
+            "frame": quadro, "tempo_s": round(quadro / self.fps, 3),
+            "track_id": self.track_id, "classe": classe,
+            "conf": conf if conf is None else round(float(conf), 3),
+            "cx": round(cx, 1), "cy": round(cy, 1),
+            "largura": round(larg, 1), "altura": round(alt, 1),
+            "vx": round(vx, 1), "vy": round(vy, 1),
+            "velocidade_px_s": round(vel, 1), "velocidade_norm": round(vel_norm, 3),
+            "direcao_graus": direcao,
+        }
 
 
 def calcular_track(linhas, fps, janela):
     """Calcula as features de um track. Devolve lista de dicts (um por quadro)."""
-    quadros = [int(l["frame"]) for l in linhas]
-    x1, y1, x2, y2 = (media_movel([float(l[k]) for l in linhas], janela) for k in ("x1", "y1", "x2", "y2"))
-    cx = [(a + b) / 2 for a, b in zip(x1, x2)]
-    cy = [(a + b) / 2 for a, b in zip(y1, y2)]
-    larg = [b - a for a, b in zip(x1, x2)]
-    alt = [b - a for a, b in zip(y1, y2)]
-
-    features = []
-    for i, l in enumerate(linhas):
-        vx = vy = vel = vel_norm = 0.0
-        direcao = ""
-        if i > 0:
-            dt = (quadros[i] - quadros[i - 1]) / fps
-            vx = (cx[i] - cx[i - 1]) / dt
-            vy = (cy[i] - cy[i - 1]) / dt
-            vel = math.hypot(vx, vy)
-            escala = math.sqrt(max(larg[i] * alt[i], 1.0))
-            vel_norm = vel / escala
-            if vel > 0:
-                direcao = round(math.degrees(math.atan2(vy, vx)), 1)
-        features.append({
-            "frame": quadros[i], "tempo_s": round(quadros[i] / fps, 3),
-            "track_id": int(l["track_id"]), "classe": l["classe"],
-            "cx": round(cx[i], 1), "cy": round(cy[i], 1),
-            "largura": round(larg[i], 1), "altura": round(alt[i], 1),
-            "vx": round(vx, 1), "vy": round(vy, 1),
-            "velocidade_px_s": round(vel, 1), "velocidade_norm": round(vel_norm, 3),
-            "direcao_graus": direcao,
-        })
-    return features
+    historico = HistoricoTrack(int(linhas[0]["track_id"]), fps, janela)
+    return [historico.adicionar(int(l["frame"]), l["classe"],
+                                [float(l[k]) for k in ("x1", "y1", "x2", "y2")], l.get("conf"))
+            for l in linhas]
 
 
 def calcular_todos(por_track, fps, janela, min_quadros):

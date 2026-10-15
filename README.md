@@ -78,7 +78,7 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-O modelo `yolo11n.pt` é baixado automaticamente pelo ultralytics na primeira execução do `main.py`
+O modelo `yolo11s.pt` (small; o nano não detectava o caminhão parado no vídeo de ajuste 01) é baixado automaticamente pelo ultralytics na primeira execução do `main.py`
 e salvo em `visao/modelos/` (ignorado pelo git).
 
 **Observação sobre o torch (CPU) no Linux:** o `pip` do Linux costuma baixar o `torch` com suporte a CUDA,
