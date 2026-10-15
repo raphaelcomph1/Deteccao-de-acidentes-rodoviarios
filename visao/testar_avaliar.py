@@ -73,13 +73,9 @@ def main():
                                              pasta_saida=Path(tmp) / "res")
         assert "f.mp4" in [r["video"] for r in todos] and caminho2.name.startswith("resultados_TODOS_")
 
-        # o stub real deve falhar de forma clara
-        try:
-            avaliar.avaliar(gabarito, "AJUSTE", "videos_falsos", {}, pasta_saida=Path(tmp) / "res")
-        except NotImplementedError:
-            pass
-        else:
-            raise AssertionError("o stub deveria levantar NotImplementedError")
+        # com o pipeline real e videos que nao existem, cada video e ignorado com aviso (nao derruba a avaliacao)
+        vazios, _, _ = avaliar.avaliar(gabarito, "AJUSTE", "videos_falsos", {}, pasta_saida=Path(tmp) / "res")
+        assert vazios == []
 
         avaliar.imprimir_resumo(resumo, caminho)
     print("\nTodos os testes passaram.")

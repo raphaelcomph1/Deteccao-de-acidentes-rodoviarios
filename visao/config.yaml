@@ -68,8 +68,12 @@ classificacao:
   continuidade_ref: 0.80      # fracao de quadros com o track visivel (tracking instavel penaliza abaixo disto)
   continuidade_min: 0.30
 
-# video -> camera (preencher quando os videos chegarem)
-cameras: {}
+# video (sem extensao) -> camera_id e local do evento. Sao so rotulos do evento: a classificacao nunca olha isto.
+# Video que nao estiver aqui usa eventos.camera_padrao e eventos.local_padrao.
+cameras:
+  video_01: {camera_id: CAM01, local: "Rodovia ficticia, km 42 sentido norte"}
+  video_02: {camera_id: CAM02, local: "Rodovia ficticia, km 57 sentido sul"}
+  video_06: {camera_id: CAM03, local: "Rodovia ficticia, km 63 sentido norte"}
 
 # Trajetorias (features de movimento por track). Nao sao limiares de acidente.
 trajetorias:
@@ -100,3 +104,10 @@ analise_temporal:
   pessoa_quadros_sumico: 10    # quadros sem aparecer apos o contato = pessoa sumiu do tracking
   pessoa_queda_min: 0.30       # queda minima da proporcao altura/largura da caixa da pessoa
   pessoa_desloc_min: 1.0       # aumento minimo da velocidade da pessoa (caixas/s) para contar como deslocamento brusco
+
+# Eventos (docs/contrato_mqtt.md)
+eventos:
+  delta_revisao: 0.05      # so reenvia (revisao + 1) se a confianca subir pelo menos isto, ou o tipo/indicador mudar
+  janela_dedup_s: 5.0      # contatos de pares que compartilham um track, a menos de N s um do outro, sao o mesmo acidente
+  camera_padrao: CAM01
+  local_padrao: "Rodovia ficticia, km 42 sentido norte"
