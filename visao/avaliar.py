@@ -103,8 +103,12 @@ def avaliar(gabarito, conjunto, pasta_videos, config, analisar=analisar_video, p
     resultados = []
     for linha in ler_gabarito(gabarito, conjunto):
         esperado = linha["rotulo_esperado"].strip()
+        caminho = Path(pasta_videos) / linha["video"]
+        if not caminho.exists() and analisar is analisar_video:   # video que ainda nao chegou: so avisa e segue
+            print(f"[aviso] {linha['video']}: arquivo nao encontrado em {pasta_videos}; ignorado")
+            continue
         try:
-            saida = analisar(Path(pasta_videos) / linha["video"], config)
+            saida = analisar(caminho, config)
         except Exception as erro:  # um video com problema nao derruba a avaliacao inteira
             print(f"[aviso] {linha['video']}: falha ao analisar ({erro}); ignorado")
             continue
