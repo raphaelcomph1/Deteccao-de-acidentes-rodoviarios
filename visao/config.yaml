@@ -1,7 +1,7 @@
 # Configuracao do modulo de visao (Motiva Vision)
 
 detector:
-  modelo: modelos/yolo11n.pt   # nano: roda em CPU de notebook
+  modelo: modelos/yolo11s.pt   # small: o nano nao detectava o caminhao parado no video de ajuste 01
   tracker: bytetrack.yaml      # ByteTrack embutido no ultralytics
   confianca_minima: 0.30
   tamanho_imagem: 640
@@ -40,3 +40,26 @@ trajetorias:
   min_quadros: 10        # tracks mais curtos sao descartados como ruido
   rastro_quadros: 30     # tamanho do rastro desenhado na visualizacao
   escala_vetor_s: 0.5    # o vetor desenhado mostra o deslocamento previsto em N segundos
+
+# Analise temporal (features de pares de tracks). Distancias em "tamanhos de caixa"
+# (escala = raiz da area da caixa) e velocidades em tamanhos de caixa por segundo.
+# Valores provisorios: ajustar so com os videos de AJUSTE.
+analise_temporal:
+  contato_gap: 0.10            # contato = distancia entre as caixas <= 10% da menor caixa (0 = sobrepostas)
+  contato_quadros_min: 2       # quadros seguidos em contato para valer (evita piscadas do detector)
+  liberar_gap: 1.0             # par so pode gerar novo candidato depois de se afastar desta distancia
+  janela_pre_s: 1.0            # historico antes do contato usado para velocidade e aproximacao
+  pre_min_quadros: 8           # sem historico pre-contato suficiente, nao ha candidato
+  velocidade_min_pre: 0.5      # pelo menos um dos tracks precisa estar se movendo (veiculos ja parados nao contam)
+  aproximacao_min: 0.3         # velocidade minima de aproximacao entre as caixas antes do contato
+  janela_direcao_s: 0.5        # direcao no momento do contato = media do vetor de velocidade neste trecho
+  velocidade_min_direcao: 0.3  # abaixo disso a direcao do track nao e confiavel (None)
+  janela_decel_s: 1.0          # desaceleracao medida logo apos o contato
+  janela_pos_s: 2.0            # observacao total apos o contato (parada, pessoa)
+  velocidade_parado: 0.15      # abaixo disso o track conta como parado
+  desaceleracao_min: 0.50      # queda relativa minima da velocidade (mediana antes x mediana depois do contato)
+  parada_min_s: 0.3            # tempo minimo parado depois do contato (junto com a desaceleracao)
+  pessoa_veiculo_reage_min: 0.30   # no par pessoa-veiculo, o veiculo tambem precisa desacelerar ao menos isto
+  pessoa_quadros_sumico: 10    # quadros sem aparecer apos o contato = pessoa sumiu do tracking
+  pessoa_queda_min: 0.30       # queda minima da proporcao altura/largura da caixa da pessoa
+  pessoa_desloc_min: 1.0       # aumento minimo da velocidade da pessoa (caixas/s) para contar como deslocamento brusco
