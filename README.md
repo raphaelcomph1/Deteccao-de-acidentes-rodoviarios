@@ -145,7 +145,32 @@ fora do `avaliar.py`, nunca usar os vídeos RESERVADOS para ajustes) estão no `
 
 ## Central
 
-Em construção.
+A central é um fluxo Node-RED (`central/flows.json`) com dashboard, onde o operador confirma ou rejeita
+os eventos recebidos via MQTT.
+
+### Como rodar
+
+1. Instale o [Node.js](https://nodejs.org) (versão LTS) e o Node-RED:
+   ```
+   npm install -g --unsafe-perm node-red
+   ```
+2. Instale o dashboard na versão fixada (pela paleta do Node-RED, em *Manage palette*, ou na pasta `~/.node-red`):
+   ```
+   npm install @flowfuse/node-red-dashboard@1.33.0
+   ```
+3. Ative o `contextStorage` no `settings.js` (em `~/.node-red/settings.js`), com `memory` como padrão e `file` em `localfilesystem`:
+   ```js
+   contextStorage: {
+       default: { module: "memory" },
+       file: { module: "localfilesystem" }
+   },
+   ```
+   Depois reinicie o Node-RED (`node-red`).
+4. Abra `http://127.0.0.1:1880`, importe `central/flows.json` (menu → *Import*) e clique em **Deploy**.
+5. Abra o dashboard em `http://127.0.0.1:1880/dashboard`.
+
+> **Atenção:** só pode haver **uma central ligada por vez**. O `client_id` MQTT é fixo, e duas instâncias
+> com o mesmo `client_id` derrubam a conexão uma da outra no broker.
 
 ## ESP32
 
