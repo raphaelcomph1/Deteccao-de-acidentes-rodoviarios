@@ -316,19 +316,20 @@ class AnalisadorTemporal:
         return cand
 
     def qualidade_tracking(self, estado, quadro):
-        """Confianca media das deteccoes e continuidade do tracking dos veiculos do par (janela pre + pos).
+        """Confianca media das deteccoes (pre + pos contato) e continuidade do tracking ANTES do contato.
 
-        continuidade = fracao dos quadros esperados em que o track apareceu (1.0 = nenhum buraco).
+        continuidade = fracao dos quadros da janela pre-contato em que o track do veiculo apareceu (1.0 = sem buracos).
+        So o periodo anterior ao contato conta: depois dele, caixas que se fundem e IDs que mudam sao
+        consequencia da propria colisao, nao sinal de video ruim.
         A pessoa fica de fora: sumir do tracking e justamente uma das evidencias do atropelamento."""
         c = estado["c"]
-        ini = c - self.n_quadros(self.cfg["janela_pre_s"])
+        n_pre = self.n_quadros(self.cfg["janela_pre_s"])
         fim = min(quadro, c + self.n_quadros(self.cfg["janela_pos_s"]))
         lados = ("a",) if estado["tipo"] == "pessoa_veiculo" else ("a", "b")
         confs, continuidades = [], []
         for lado in lados:
-            jan = self.janela(estado[lado], ini, fim)
-            confs += [f["conf"] for f in jan if f.get("conf") is not None]
-            continuidades.append(len(jan) / (fim - ini + 1))
+            confs += [f["conf"] for f in self.janela(estado[lado], c - n_pre, fim) if f.get("conf") is not None]
+            continuidades.append(len(self.janela(estado[lado], c - n_pre, c - 1)) / n_pre)
         conf_media = sum(confs) / len(confs) if confs else None
         return arredondar(conf_media, 3), arredondar(min(continuidades), 3)
 

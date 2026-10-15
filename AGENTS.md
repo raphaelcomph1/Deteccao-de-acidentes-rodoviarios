@@ -119,7 +119,7 @@ visao/
 ## 7. Estado atual e próximos passos (atualizar conforme avançar)
 
 - [x] Ambiente Python 3.11 + `requirements.txt` com versões
-- [ ] YOLO + ByteTrack rodando em um vídeo de treino, com IDs estáveis desenhados na tela — pipeline pronto (`main.py --mostrar`), testado só em vídeo sintético; falta validar a estabilidade dos IDs em vídeo reall
+- [x] YOLO + ByteTrack rodando em vídeos reais (yolo11s; o nano não detectava o caminhão parado do vídeo 01), com IDs desenhados (`main.py --mostrar`). Estabilidade dos IDs: boa em tráfego normal, ruim no impacto (caixas se fundem) e à noite
 - [x] Registro de trajetórias por track em CSV (`saida/logs/`)
 - [x] Publicação de `docs/exemplos/evento.json` no broker (teste de conexão) — `testar_mqtt.py` (tópico de teste; `--real` publica em `eventos`)
 - [x] Caminho da evidência padronizado (`visao/saida/evidencias/<event_id>.jpg`, relativo à raiz) no contrato e no exemplo
@@ -130,6 +130,9 @@ visao/
 - [x] `avaliar.py`: esperado `INDETERMINADO` + acidente obtido = `excesso_de_confianca`; esses vídeos ficam fora de precisão/recall e têm contador próprio
 - [x] `carregar_config` movido para `visao/util.py` (avaliar e testes não dependem mais do ultralytics)
 - [x] `README.md` na raiz (objetivo, arquitetura, pastas, integrantes, instalação e uso da visão; Central e ESP32 marcados "em construção")
-- [ ] Análise temporal e classificação (usar `dados/dev/` até os 6 vídeos de AJUSTE chegarem, previstos para 09/10)
-- [ ] Deduplicação, evidências e publicação real dos eventos
-- [ ] Ligar o pipeline real ao `avaliar.py` e fazer a avaliação final nos vídeos RESERVADOS (14/10)
+- [x] Análise temporal (`analise_temporal.py`) e classificação (`classificador.py`, escore ponderado com contribuições por evidência), documentadas em `docs/algoritmo_visao.md`; testes sintéticos em `testar_analise_temporal.py` e `testar_classificador.py`
+- [x] Ajuste inicial com os vídeos de AJUSTE (01, 02, 06, 08): continuidade do tracking só antes do contato. Resultado: 2 acertos, 2 INDETERMINADO (tipo detectado certo), 0 falso positivo. Proposta pendente de continuidade (seção 6.3 do doc) aguardando decisão do grupo
+- [ ] Vídeo de AJUSTE de atropelamento (`video_07`) ainda não avaliado: o atropelamento só foi testado em cena sintética
+- [x] Deduplicação (`GerenciadorEventos`, `revisao` + 1), evidências em `saida/evidencias/<event_id>.jpg` e publicação real dos eventos (`main.py`, `--sem-mqtt` para só analisar). Falta o teste integrado com a central e o ESP32
+- [x] Pipeline real ligado ao `avaliar.py` (`analisar_video()`; vídeo ausente só gera aviso)
+- [ ] Avaliação final nos vídeos RESERVADOS (só depois de congelar pesos e limiares)

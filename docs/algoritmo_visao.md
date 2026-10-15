@@ -116,7 +116,7 @@ Cada uma subtrai até 0,15 do escore:
 
 Se o vídeo tem vários candidatos, vale o de maior confiança. Sem candidatos, a saída é `SEM_ACIDENTE`.
 
-## 4. Resultados da Etapa 2 (antes de qualquer ajuste de pesos)
+## 4. Resultados da Etapa 2 (antes de qualquer ajuste; os da Etapa 4 estão na seção 6)
 
 Vídeos de AJUSTE (`videos/`), pesos e limiares da seção 3:
 
@@ -127,7 +127,7 @@ Vídeos de AJUSTE (`videos/`), pesos e limiares da seção 3:
 | `video_06` | tráfego denso sem acidente | `SEM_ACIDENTE` | nenhum candidato | 0,00 | BAIXO |
 
 Nos dois acidentes o tipo detectado está certo, mas a confiança fica abaixo de 0,70 por causa das penalidades de
-tracking (continuidade 0,54 no vídeo 01 e 0,26 no vídeo 02) e da parada curta. Ver limitações.
+tracking (continuidade 0,54 no vídeo 01 e 0,26 no vídeo 02, medidas ainda com a janela pós-contato) e da parada curta. Ver limitações e a seção 6.
 
 Cenas sintéticas (`testar_classificador.py`):
 
@@ -148,9 +148,11 @@ Cenas sintéticas (`testar_classificador.py`):
   0,63 s (vídeo 02). A folga é pequena e o valor foi escolhido com apenas três vídeos; uma colisão em que o
   veículo reduz a velocidade sem parar por 0,3 s não gera candidato.
 - **O tracking funde caixas no impacto.** No vídeo 02, as duas caixas viram uma só no momento da batida e os IDs
-  mudam logo depois; um dos pares foi descartado por `sem_historico_pre` e a continuidade do candidato ficou em
-  0,26, o que gera a penalidade máxima. O vídeo 01 também tem buracos de detecção (continuidade 0,54). Não há
-  religação de tracks perdidos nesta versão.
+  mudam logo depois; um dos pares foi descartado por `sem_historico_pre`. Como a penalidade
+  de continuidade agora só olha o período antes do contato (seção 6.1), isso não pesa mais no escore, mas o
+  segundo carro só aparece 10 quadros antes do contato e a continuidade ficou em 0,30 (penalidade máxima; ver a
+  proposta 6.3). O vídeo 01 tem buracos reais de detecção antes do contato (o caminhão parado aparece em 14 de 30
+  quadros, continuidade 0,47). Não há religação de tracks perdidos nesta versão.
 - **Atropelamento validado só em cena sintética.** Não há vídeo real de atropelamento para ajuste. A regra
   e os pesos conservadores (teto de 0,85, sinal isolado vale metade) foram definidos por raciocínio e testados só
   em cenas geradas por código. O comportamento em vídeo real é desconhecido.
@@ -167,14 +169,75 @@ Cenas sintéticas (`testar_classificador.py`):
 - **Poucos vídeos.** Pesos e limiares são provisórios e vieram de raciocínio físico; a calibração usa apenas
   três vídeos de ajuste.
 
-## 6. Ajustes feitos com os vídeos de AJUSTE
+## 6. Ajustes feitos com os vídeos de AJUSTE (Etapa 4)
 
-**Ajustes planejados para a Etapa 4 (ainda não aplicados):**
+### 6.1 Continuidade do tracking só antes do contato (aplicado)
 
-- A penalidade de tracking instável (`penal_continuidade_track`) deve medir a continuidade **só antes do contato**.
-  Justificativa geral: a instabilidade depois do contato é consequência da própria colisão (as caixas se fundem
-  no impacto e os IDs mudam), não sinal de vídeo ruim; penalizar isso pune justamente os acidentes mais
-  violentos. Antes do contato, buracos de detecção e troca de ID continuam indicando imagem ruim.
+**O que mudou.** `penal_continuidade_track` media a fração de quadros em que o track aparecia na janela de
+1 s antes até 2 s depois do contato. Passou a medir **só a janela de 1 s antes do contato**.
 
-Ainda nenhum ajuste de pesos ou limiares na Etapa 2 (os valores acima são os iniciais, definidos por raciocínio).
-Os ajustes da Etapa 4 e a justificativa de cada um serão registrados aqui.
+**Justificativa geral.** Depois do contato, as caixas se fundem no impacto e os IDs mudam; isso é consequência
+da própria colisão, não sinal de vídeo ruim. Penalizar esse trecho puniria justamente os acidentes mais violentos.
+Antes do contato, buracos de detecção continuam indicando imagem ruim (noite, chuva, brilho).
+
+**Antes e depois** (`classificador.py`, mesmos pesos, mesmos vídeos):
+
+| Vídeo | Continuidade antes → depois | Penalidade antes → depois | Confiança antes → depois | Tipo |
+|---|---|---|---|---|
+| `video_01` (traseira) | 0,54 → 0,47 | −0,079 → −0,100 | 0,68 → 0,65 | `INDETERMINADO` (traseira) nos dois casos |
+| `video_02` (lateral) | 0,26 → 0,30 | −0,150 → −0,150 | 0,61 → 0,61 | `INDETERMINADO` (lateral) nos dois casos |
+
+**Resultado: o ajuste é correto em princípio, mas não melhora nenhum escore.** No `video_01` a continuidade
+antes do contato é ainda pior que a medida antiga: o caminhão parado é detectado em só 14 dos 30 quadros
+anteriores (à noite, com luzes fortes), então o buraco é real e a penalidade é justa. No `video_02` a penalidade
+já estava no máximo.
+
+### 6.2 Resultado do `avaliar.py --conjunto AJUSTE`
+
+Pesos e limiares iguais aos das seções anteriores, só com o ajuste 6.1:
+
+| Vídeo | Esperado | Obtido | Confiança | Erro |
+|---|---|---|---|---|
+| `video_01` | `COLISAO_TRASEIRA` | `INDETERMINADO` | 0,65 | indeterminado (tipo detectado certo) |
+| `video_02` | `COLISAO_LATERAL` | `INDETERMINADO` | 0,61 | indeterminado (tipo detectado certo) |
+| `video_06` | `SEM_ACIDENTE` | `SEM_ACIDENTE` | 0,00 | nenhum |
+| `video_08` (chuva) | `SEM_ACIDENTE` | `SEM_ACIDENTE` | 0,00 | nenhum |
+| `video_07` (atropelamento) | `ATROPELAMENTO` | não avaliado | | arquivo ainda não chegou (o `avaliar.py` só avisa e segue) |
+
+Resumo: 2 acertos, 2 indeterminados, 0 falsos positivos, 0 falsos negativos; precisão e recall de **detecção**
+100% (INDETERMINADO conta como detectado). A taxa de classificação exata é 2 de 4 e **nenhum acidente foi
+afirmado com ALTO** nos vídeos de ajuste.
+
+O `video_08` (chuva, visibilidade prejudicada, confiança média das detecções 0,58) gerou 33 tracks e 8 pares com
+contato, todos descartados pelos portões da análise temporal (7 por "já parados antes" e 1 por "veículo parado
+antes"): não houve candidato nem evento. Não houve falso positivo, portanto não foi preciso investigar.
+
+### 6.3 Proposta pendente (não aplicada)
+
+**Medir a continuidade a partir da primeira aparição do track na janela**, e não desde o início da janela.
+Justificativa geral: um veículo que acabou de entrar no campo de visão não tem histórico para ter "buracos";
+instabilidade é quadro faltando **dentro** da vida do track. Com essa definição, buracos reais (como o do caminhão
+no `video_01`, 14 de 30) continuam penalizados.
+
+Efeito simulado nos vídeos de ajuste (sem aplicar): `video_01` não muda (0,47, o track já existia na janela inteira);
+`video_02` passaria de 0,30 para 0,90 (o segundo carro entra em cena 10 quadros antes do contato e aparece em 9 deles)
+e a confiança iria de 0,61 para 0,76 (`COLISAO_LATERAL`, ALTO). Como o efeito prático é concentrado em um vídeo, a
+mudança só deve ser adotada se o grupo concordar com a justificativa geral. Risco: um track novo criado por troca
+de ID parece "entrada em cena" e deixaria de ser penalizado.
+
+Nenhum outro peso ou limiar foi alterado nesta etapa.
+
+## 7. Indicadores do evento e o que significam
+
+Os indicadores do contrato (`indicadores` no evento) vêm só do que a visão observou no par de tracks:
+
+| Indicador | Como é preenchido | O que **não** quer dizer |
+|---|---|---|
+| `veiculos_envolvidos` | 2 em colisão veículo–veículo, 1 em atropelamento (só os veículos do par) | pode haver outros veículos envolvidos que não entraram no par |
+| `pessoa_envolvida` | `true` se o candidato é um par pessoa–veículo | `false` significa **"nenhuma pessoa detectada perto do contato"**, não ausência confirmada: uma pessoa que o detector não viu (escuro, chuva, oclusão) não aparece |
+| `veiculo_parado_na_pista` | `true` se algum veículo do par está parado (< 0,15 caixa/s) no último quadro observado; vira `true` em uma revisão se isso acontecer depois | `false` pode também significar que o veículo saiu de cena |
+| `faixa_obstruida` | sempre `desconhecido` (não há informação de faixas) | |
+
+O que não for possível observar fica `null` ou `desconhecido`; nada é inventado. A recomendação (R1 a R4) é só uma
+sugestão aplicada sobre esses indicadores e depende do operador.
+
