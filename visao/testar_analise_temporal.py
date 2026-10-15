@@ -10,7 +10,7 @@ from util import carregar_config
 FPS = 30.0
 
 
-def rodar_cena(cena, n_quadros):
+def rodar_cena(cena, n_quadros, conf=0.9):
     """cena: {track_id: (classe, funcao(quadro) -> caixa ou None)}. Devolve o analisador depois de todos os quadros."""
     config = carregar_config("config.yaml")
     analisador = AnalisadorTemporal(config, FPS, config["trajetorias"]["min_quadros"])
@@ -20,7 +20,7 @@ def rodar_cena(cena, n_quadros):
         for tid, (classe, caixa_em) in cena.items():
             caixa = caixa_em(n)
             if caixa:
-                features.append(historicos[tid].adicionar(n, classe, caixa, 0.9))
+                features.append(historicos[tid].adicionar(n, classe, caixa, conf))
         analisador.processar_quadro(n, features)
     return analisador
 
