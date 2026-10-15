@@ -212,18 +212,21 @@ O `video_08` (chuva, visibilidade prejudicada, confiança média das detecções
 contato, todos descartados pelos portões da análise temporal (7 por "já parados antes" e 1 por "veículo parado
 antes"): não houve candidato nem evento. Não houve falso positivo, portanto não foi preciso investigar.
 
-### 6.3 Proposta pendente (não aplicada)
+### 6.3 Melhoria proposta (não adotada)
 
 **Medir a continuidade a partir da primeira aparição do track na janela**, e não desde o início da janela.
 Justificativa geral: um veículo que acabou de entrar no campo de visão não tem histórico para ter "buracos";
 instabilidade é quadro faltando **dentro** da vida do track. Com essa definição, buracos reais (como o do caminhão
 no `video_01`, 14 de 30) continuam penalizados.
 
+**Decisão (15/10/2026): não adotar.** Fica registrada como melhoria proposta para trabalho futuro. O principal
+motivo é o risco de mascarar troca de ID: um track novo criado por troca de ID parece "entrada em cena" e deixaria
+de ser penalizado, escondendo justamente a instabilidade que a penalidade quer medir.
+
 Efeito simulado nos vídeos de ajuste (sem aplicar): `video_01` não muda (0,47, o track já existia na janela inteira);
 `video_02` passaria de 0,30 para 0,90 (o segundo carro entra em cena 10 quadros antes do contato e aparece em 9 deles)
-e a confiança iria de 0,61 para 0,76 (`COLISAO_LATERAL`, ALTO). Como o efeito prático é concentrado em um vídeo, a
-mudança só deve ser adotada se o grupo concordar com a justificativa geral. Risco: um track novo criado por troca
-de ID parece "entrada em cena" e deixaria de ser penalizado.
+e a confiança iria de 0,61 para 0,76 (`COLISAO_LATERAL`, ALTO). O efeito prático ficaria concentrado em um único
+vídeo de ajuste.
 
 Nenhum outro peso ou limiar foi alterado nesta etapa.
 
