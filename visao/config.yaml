@@ -42,6 +42,12 @@ classificacao:
     pessoa: 0.50
     geometria: 0.25
   teto_atropelamento: 0.85    # sem video real de atropelamento nao se afirma com certeza maxima
+  # teto por resolucao (so colisao veiculo-veiculo): se a menor dimensao das duas caixas no contato for menor que
+  # teto_resolucao_caixa_px, o gap entre caixas (tolerancia = 10% da caixa) fica dentro do ruido do detector e nao
+  # prova contato; a confianca fica limitada a teto_resolucao_confianca (no maximo INDETERMINADO).
+  # 50 px = 5 px de incerteza do gap (p90 do ruido de borda medido, 2 bordas, margem de 2 sigma) / contato_gap 0.10
+  teto_resolucao_caixa_px: 50
+  teto_resolucao_confianca: 0.65
   aproximacao_ref: 1.0        # aproximacao (caixas/s) que vale evidencia de contato 1.0
   desaceleracao_zero: 0.30    # queda relativa de velocidade que vale 0 ...
   desaceleracao_cheia: 0.90   # ... e a que vale 1.0

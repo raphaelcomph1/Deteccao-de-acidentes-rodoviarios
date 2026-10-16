@@ -116,6 +116,14 @@ Cada uma subtrai até 0,15 do escore:
 
 Se o vídeo tem vários candidatos, vale o de maior confiança. Sem candidatos, a saída é `SEM_ACIDENTE`.
 
+### 3.7 Teto de confiança por resolução (colisão veículo–veículo)
+
+Depois das penalidades, se a **menor dimensão (largura ou altura) das duas caixas no quadro do contato** for menor
+que `teto_resolucao_caixa_px` (50 px, `config.yaml`), a confiança fica limitada a `teto_resolucao_confianca`
+(0,65): no máximo `INDETERMINADO` (`MEDIO`). A contribuição aparece na saída como `teto_resolucao_caixa`.
+O candidato registra o valor medido em `menor_caixa_px`. A regra **não vale para atropelamento** (a largura de
+uma pessoa é pequena por natureza e não mede a distância do objeto). Justificativa física e resultados na seção 6.4.
+
 ## 4. Resultados da Etapa 2 (antes de qualquer ajuste; os da Etapa 4 estão na seção 6)
 
 Vídeos de AJUSTE (`videos/`), pesos e limiares da seção 3:
@@ -153,9 +161,14 @@ Cenas sintéticas (`testar_classificador.py`):
   segundo carro só aparece 10 quadros antes do contato e a continuidade ficou em 0,30 (penalidade máxima; ver a
   proposta 6.3). O vídeo 01 tem buracos reais de detecção antes do contato (o caminhão parado aparece em 14 de 30
   quadros, continuidade 0,47). Não há religação de tracks perdidos nesta versão.
-- **Atropelamento validado só em cena sintética.** Não há vídeo real de atropelamento para ajuste. A regra
-  e os pesos conservadores (teto de 0,85, sinal isolado vale metade) foram definidos por raciocínio e testados só
-  em cenas geradas por código. O comportamento em vídeo real é desconhecido.
+- **Atropelamento: a detecção é o limite, não a regra.** No `video_07` (vídeo real de AJUSTE, 352×288) a vítima,
+  com cerca de 15×25 px, **nunca é detectada como `person`** (pequena, escura, agachada na faixa e depois caída no
+  chão), e o carro só passa a ser rastreado em 3,22 s (track #60, classificado como `truck`), cerca de 0,4 s antes
+  do impacto. Nenhum par pessoa–veículo chega a contato, então as features da pessoa (queda, deslocamento e
+  sumiço) nem chegam a ser medidas e o resultado é `SEM_ACIDENTE` (falso negativo). Decisão do grupo (16/10/2026):
+  **nenhuma mudança**; fica registrado como limitação de detecção de objetos pequenos em baixa resolução. Fora
+  esse vídeo, a regra e os pesos conservadores (teto de 0,85, sinal isolado vale metade) só foram testados em
+  cenas geradas por código.
 - **Atraso da suavização.** O contato só é confirmado alguns quadros depois do impacto (média móvel de 5 quadros
   mais 2 quadros seguidos). Se a pessoa é projetada rápido logo no impacto, o contato pode nem ser registrado.
 - **Ângulos em 2D.** As direções são medidas na imagem, não no chão; com câmera inclinada, ângulos reais de 90°
@@ -166,6 +179,8 @@ Cenas sintéticas (`testar_classificador.py`):
   ruidosa.
 - **Só duas colisões e três tipos.** Colisão frontal, capotamento, queda de moto ou ciclista e acidentes sem
   contato entre os tracks não têm categoria própria; tendem a `INDETERMINADO` ou a não gerar candidato.
+- **Colisão em veículos pequenos na imagem.** O teto da seção 3.7 limita a `INDETERMINADO` colisões em que a
+  menor caixa tem menos de 50 px: mesmo uma batida real nessa escala não é afirmada com `ALTO`.
 - **Poucos vídeos.** Pesos e limiares são provisórios e vieram de raciocínio físico; a calibração usa apenas
   três vídeos de ajuste.
 
@@ -229,6 +244,73 @@ e a confiança iria de 0,61 para 0,76 (`COLISAO_LATERAL`, ALTO). O efeito práti
 vídeo de ajuste.
 
 Nenhum outro peso ou limiar foi alterado nesta etapa.
+
+### 6.4 Teto de confiança por resolução (aplicado, 16/10/2026)
+
+**Problema.** O `video_11` (tráfego normal, 1280×720, esperado `SEM_ACIDENTE`) gerou `COLISAO_TRASEIRA` com
+confiança 0,89 (`ALTO`). O par é um carro que chega a uma fila parada e freia: as duas caixas (73×30 e 78×29 px,
+ao fundo da rua) ficam a 4,8% da menor caixa uma da outra, o que cumpre `contato_gap = 0,10`. A regra "um em
+movimento, o outro parado, alinhados, o primeiro freia e para" descreve uma batida traseira, mas também descreve
+um carro entrando numa fila. A única prova de contato é o gap em pixels, e em veículo pequeno na imagem ele não
+é confiável.
+
+**Regra.** Em colisão veículo–veículo, se a menor dimensão das duas caixas no contato for < 50 px, a confiança
+fica limitada a 0,65 (no máximo `INDETERMINADO`, que publica o evento para revisão humana, recomendação R4).
+
+**Por que 50 px (raciocínio físico, não ajuste ao resultado).**
+1. O contato é declarado quando o gap entre as bordas é ≤ 10% da caixa menor. Para o gap provar contato, essa
+   tolerância precisa ser maior que a incerteza de posição das bordas.
+2. O ruído de borda foi medido nas trajetórias dos vídeos de AJUSTE, em veículos praticamente parados (desvio
+   padrão de cada borda ao longo de 1 s): mediana de 0,1 a 1,1 px conforme o vídeo; p90 de até 1,8 px (pior caso,
+   `video_08`, com chuva).
+3. O gap soma duas bordas: √2 × 1,8 ≈ 2,5 px; com margem de 2σ, ≈ 5 px.
+4. Tolerância de 10% ≥ 5 px ⇒ caixa de pelo menos 5 / 0,10 = **50 px**. Abaixo disso, "gap ≤ 10%" está dentro do
+   ruído do detector.
+Nos vídeos de AJUSTE qualquer valor entre 30 e 80 px dá o mesmo resultado; os 50 px vêm da conta acima, não de um
+ajuste. Limites, ambos no `config.yaml` (`classificacao`): `teto_resolucao_caixa_px: 50`,
+`teto_resolucao_confianca: 0,65`.
+
+**Escopo.** Só colisão veículo–veículo. A menor dimensão de uma caixa de pessoa é a largura, pequena por natureza
+(10 a 17 px nas pessoas do `video_07`), e aplicar a regra a ela limitaria todo atropelamento a `INDETERMINADO` sem que
+isso diga nada sobre a distância. O atropelamento mantém o teto próprio de 0,85.
+
+**Antes e depois** (`menor_caixa_px` vem das trajetórias dos 6 vídeos de AJUSTE; as demais colunas, do mesmo código
+com o limite zerado × 50):
+
+| Vídeo | Menor caixa no contato | Antes | Depois |
+|---|---|---|---|
+| `video_01` | 27 px | `INDETERMINADO` 0,65 | `INDETERMINADO` 0,65 (já estava no teto) |
+| `video_02` | 80 px | `INDETERMINADO` 0,61 | `INDETERMINADO` 0,61 (acima de 50 px) |
+| `video_06`, `video_07`, `video_08` | sem candidato | `SEM_ACIDENTE` | `SEM_ACIDENTE` |
+| `video_11` | 27 px | `COLISAO_TRASEIRA` 0,89 (`ALTO`) | `INDETERMINADO` 0,65 |
+
+**Limitação.** O teto não diz que o `video_11` não tem acidente; só que, com caixas desse tamanho, o gap não
+basta para afirmar contato. O evento ainda é publicado como `INDETERMINADO` (o `avaliar.py` o conta como `indeterminado` e
+entra como detecção indevida na precisão, mas sem afirmar acidente). Uma batida real em veículos pequenos na imagem também vai a no máximo `INDETERMINADO`.
+
+### 6.5 Melhoria futura (não implementada): parada brusca × frenagem gradual
+
+Distinguir o impacto de uma frenagem normal pelo **perfil** da desaceleração: em colisão a velocidade cai quase de
+uma vez (pico de desaceleração em poucos quadros) e o outro veículo também é perturbado; ao entrar numa fila o
+carro reduz gradualmente e o parado não muda. O `video_11` tem desaceleração de 0,89 mas medida numa janela de 1 s
+(`janela_decel_s`), sem informação de quão rápida foi. Exigiria medir a taxa de variação da velocidade e a reação
+do segundo veículo; fica como trabalho futuro (não foi aplicado para não mexer em regras após o ajuste).
+
+### 6.6 Resultado final do conjunto AJUSTE (6 vídeos, código com o teto da seção 6.4)
+
+`avaliar.py --conjunto AJUSTE` (pipeline completo, sem publicar no broker):
+
+| Vídeo | Esperado | Obtido | Confiança | Instante esperado → detectado | Resultado |
+|---|---|---|---|---|---|
+| `video_01` | `COLISAO_TRASEIRA` | `INDETERMINADO` | 0,65 | 5 s → 5,13 s | indeterminado (tipo detectado certo) |
+| `video_02` | `COLISAO_LATERAL` | `INDETERMINADO` | 0,61 | 8 s → 8,17 s | indeterminado (tipo detectado certo) |
+| `video_06` | `SEM_ACIDENTE` | `SEM_ACIDENTE` | 0,00 | – | acerto |
+| `video_07` | `ATROPELAMENTO` | `SEM_ACIDENTE` | 0,00 | 3 s → – | falso negativo (limitação de detecção, seção 5) |
+| `video_08` | `SEM_ACIDENTE` | `SEM_ACIDENTE` | 0,00 | – | acerto |
+| `video_11` | `SEM_ACIDENTE` | `INDETERMINADO` | 0,65 | – → 160,83 s | indeterminado (sem o teto seria `COLISAO_TRASEIRA` 0,89) |
+
+Resumo: 2 acertos, 3 indeterminados, 1 falso negativo, 0 falsos positivos afirmados, 0 classificações erradas;
+precisão e recall de detecção de 67%. **Nenhum acidente é afirmado com `ALTO` nos vídeos de AJUSTE.**
 
 ## 7. Indicadores do evento e o que significam
 

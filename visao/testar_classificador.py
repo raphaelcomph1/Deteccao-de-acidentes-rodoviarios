@@ -4,12 +4,15 @@ from classificador import classificar_candidatos
 from testar_analise_temporal import caixa, rodar_cena
 from util import carregar_config
 
+CONFIG_REAL = carregar_config("config.yaml")
+# os carros sinteticos (60x40 px) ficam abaixo do teto de resolucao; os testes de pesos e geometria o desligam
 CONFIG = carregar_config("config.yaml")
+CONFIG["classificacao"]["teto_resolucao_caixa_px"] = 0
 
 
-def classificar_cena(cena, n_quadros=150, conf=0.9):
+def classificar_cena(cena, n_quadros=150, conf=0.9, config=CONFIG):
     analisador = rodar_cena(cena, n_quadros, conf)
-    return classificar_candidatos(list(analisador.finais.values()), CONFIG)
+    return classificar_candidatos(list(analisador.finais.values()), config)
 
 
 def traseira(parada_s=None):
@@ -77,6 +80,28 @@ def teste_atropelamento_com_um_sinal_so_e_indeterminado():
     for sinal in ("sumir", "cair"):
         r = classificar_cena(atropelamento({sinal}))
         assert r["tipo"] == "INDETERMINADO" and r["tipo_detectado"] == "ATROPELAMENTO", (sinal, r)
+
+
+def teste_caixa_pequena_limita_a_confianca_a_indeterminado():
+    """Carros de 60x40 px (menor dimensao 40 < 50): o mesmo cenario que seria ALTO fica no teto."""
+    r = classificar_cena(traseira(), config=CONFIG_REAL)
+    teto = CONFIG_REAL["classificacao"]["teto_resolucao_confianca"]
+    assert r["tipo"] == "INDETERMINADO" and r["tipo_detectado"] == "COLISAO_TRASEIRA" and r["confianca"] == teto, r
+    assert any(c["evidencia"] == "teto_resolucao_caixa" for c in r["contribuicoes"]), r
+
+
+def teste_caixa_grande_nao_sofre_o_teto():
+    """Com o limite abaixo da menor dimensao das caixas (40 px) o teto nao age."""
+    config = carregar_config("config.yaml")
+    config["classificacao"]["teto_resolucao_caixa_px"] = 30
+    r = classificar_cena(traseira(), config=config)
+    assert r["tipo"] == "COLISAO_TRASEIRA" and r["nivel"] == "ALTO", r
+
+
+def teste_teto_de_resolucao_nao_vale_para_atropelamento():
+    """A largura de uma pessoa e pequena por natureza (nao mede a distancia): o teto so vale para veiculo-veiculo."""
+    r = classificar_cena(atropelamento({"cair", "voar", "sumir"}), config=CONFIG_REAL)
+    assert r["tipo"] == "ATROPELAMENTO" and r["nivel"] == "ALTO", r
 
 
 def teste_sem_candidato_e_sem_acidente():
