@@ -188,6 +188,8 @@ class AnalisadorTemporal:
         b_para_a = (-a_para_b[0], -a_para_b[1])
         return {
             "gap_contato": gap_c, "aproximacao_norm": aproximacao,
+            # menor dimensao (largura ou altura) das duas caixas no contato: mede se o gap e confiavel
+            "menor_caixa_px": min(fa_c["largura"], fa_c["altura"], fb_c["largura"], fb_c["altura"]),
             "v_pre_a": v_a, "v_pre_b": v_b,
             "angulo_direcoes": angulo_entre(dir_a, dir_b) if dir_a and dir_b else None,
             # 0 graus = o track vinha de frente para o outro; 90 graus = vinha de lado
@@ -296,6 +298,7 @@ class AnalisadorTemporal:
             "track_a": estado["a"], "classe_a": self.historico[estado["a"]][-1]["classe"],
             "track_b": estado["b"], "classe_b": self.historico[estado["b"]][-1]["classe"],
             "gap_contato": arredondar(pre["gap_contato"], 3),
+            "menor_caixa_px": arredondar(pre["menor_caixa_px"], 0),
             "aproximacao_norm": arredondar(pre["aproximacao_norm"]),
             "angulo_direcoes": arredondar(pre["angulo_direcoes"], 0),
             "alinhamento_a": arredondar(pre["alinhamento_a"], 0), "alinhamento_b": arredondar(pre["alinhamento_b"], 0),

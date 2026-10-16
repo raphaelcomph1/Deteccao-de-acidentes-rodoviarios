@@ -146,6 +146,11 @@ def classificar(cand, config):
     escore += sum(p["contribuicao"] for p in penal)
     if tipo_detectado == "ATROPELAMENTO":
         escore = min(escore, cfg["teto_atropelamento"])
+    elif cand.get("menor_caixa_px") is not None and cand["menor_caixa_px"] < cfg["teto_resolucao_caixa_px"] \
+            and escore > cfg["teto_resolucao_confianca"]:
+        penal.append({"evidencia": "teto_resolucao_caixa", "valor": cand["menor_caixa_px"],
+                      "contribuicao": round(cfg["teto_resolucao_confianca"] - escore, 3)})
+        escore = cfg["teto_resolucao_confianca"]
     confianca = max(0.0, min(1.0, escore))
     tipo, nivel = decidir_tipo(tipo_detectado, round(confianca, 2), cfg["limiar_alto"], cfg["limiar_medio"])
     return {
