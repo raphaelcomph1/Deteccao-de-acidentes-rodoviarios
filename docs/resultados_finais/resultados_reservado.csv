@@ -1,0 +1,7 @@
+video,conjunto,rotulo_esperado,resultado_obtido,confianca,event_id,instante_esperado_s,instante_detectado_s,acerto,tipo_erro
+video_03.mp4,RESERVADO,COLISAO_LATERAL,COLISAO_LATERAL,0.82,evt-CAM01-20261016T002713-d05d,7,6.43,sim,
+video_04.mp4,RESERVADO,SEM_ACIDENTE,SEM_ACIDENTE,0.0,,,,sim,
+video_05.mp4,RESERVADO,COLISAO_TRASEIRA,SEM_ACIDENTE,0.0,,4,,nao,falso_negativo
+video_09.mp4,RESERVADO,SEM_ACIDENTE,SEM_ACIDENTE,0.0,,,,sim,
+video_10.mp4,RESERVADO,ATROPELAMENTO,INDETERMINADO,0.54,evt-CAM01-20261016T003055-d32d,8,46.03,nao,indeterminado
+video_12.mp4,RESERVADO,SEM_ACIDENTE,SEM_ACIDENTE,0.0,,,,sim,

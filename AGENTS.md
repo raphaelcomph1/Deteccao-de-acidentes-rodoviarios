@@ -132,7 +132,7 @@ visao/
 - [x] `README.md` na raiz (objetivo, arquitetura, pastas, integrantes, instalação e uso da visão; Central e ESP32 marcados "em construção")
 - [x] Análise temporal (`analise_temporal.py`) e classificação (`classificador.py`, escore ponderado com contribuições por evidência), documentadas em `docs/algoritmo_visao.md`; testes sintéticos em `testar_analise_temporal.py` e `testar_classificador.py`
 - [x] Ajuste inicial com os vídeos de AJUSTE (01, 02, 06, 08): continuidade do tracking só antes do contato. Resultado: 2 acertos, 2 INDETERMINADO (tipo detectado certo), 0 falso positivo. Proposta pendente de continuidade (seção 6.3 do doc) aguardando decisão do grupo
-- [ ] Vídeo de AJUSTE de atropelamento (`video_07`) ainda não avaliado: o atropelamento só foi testado em cena sintética
+- [x] Vídeo de AJUSTE de atropelamento (`video_07`) avaliado: falso negativo por limitação de detecção (vítima ~15×25 px nunca detectada como `person`); sem mudança de regra (docs/algoritmo_visao.md, seções 5 e 6.6)
 - [x] Deduplicação (`GerenciadorEventos`, `revisao` + 1), evidências em `saida/evidencias/<event_id>.jpg` e publicação real dos eventos (`main.py`, `--sem-mqtt` para só analisar). Falta o teste integrado com a central e o ESP32
 - [x] Pipeline real ligado ao `avaliar.py` (`analisar_video()`; vídeo ausente só gera aviso)
-- [ ] Avaliação final nos vídeos RESERVADOS (só depois de congelar pesos e limiares)
+- [x] Teto de confiança por resolução (`teto_resolucao_caixa_px`) e congelamento (tag `v1.0-congelado`); avaliação final nos RESERVADOS: 4 acertos, 1 falso negativo (`video_05`), 1 `INDETERMINADO` (`video_10`); resultados em `docs/resultados_finais/` e seção 8 do `docs/algoritmo_visao.md`

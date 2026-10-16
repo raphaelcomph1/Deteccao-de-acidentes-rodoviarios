@@ -326,3 +326,69 @@ Os indicadores do contrato (`indicadores` no evento) vêm só do que a visão ob
 O que não for possível observar fica `null` ou `desconhecido`; nada é inventado. A recomendação (R1 a R4) é só uma
 sugestão aplicada sobre esses indicadores e depende do operador.
 
+## 8. Resultados finais: conjunto RESERVADO (código congelado na tag `v1.0-congelado`)
+
+`avaliar.py --conjunto RESERVADO --videos ../videos_reservado` (16/10/2026), sem publicar no broker, com os pesos,
+limiares e regras da tag `v1.0-congelado` (commit com o teto da seção 6.4). Nenhum parâmetro foi alterado depois de
+abrir os vídeos reservados. Arquivos: `docs/resultados_finais/resultados_reservado.csv` (mais
+`resultados_ajuste.csv`, para comparação) e as imagens de evidência dos eventos publicados. Um segundo
+processamento dos mesmos vídeos (para extrair as features) deu exatamente as mesmas confianças.
+
+### 8.1 Tabela
+
+| Vídeo | Esperado | Obtido | Confiança | Instante esperado → detectado | Resultado |
+|---|---|---|---|---|---|
+| `video_03` | `COLISAO_LATERAL` | `COLISAO_LATERAL` | 0,82 (`ALTO`) | 7 s → 6,43 s | acerto |
+| `video_04` | `SEM_ACIDENTE` | `SEM_ACIDENTE` | 0,00 | – | acerto |
+| `video_05` | `COLISAO_TRASEIRA` | `SEM_ACIDENTE` | 0,00 | 4 s → – | **falso negativo** |
+| `video_09` (chuva forte) | `SEM_ACIDENTE` | `SEM_ACIDENTE` | 0,00 | – | acerto |
+| `video_10` | `ATROPELAMENTO` | `INDETERMINADO` | 0,54 | 8 s → 46,03 s (ver 8.2) | **indeterminado** |
+| `video_12` | `SEM_ACIDENTE` | `SEM_ACIDENTE` | 0,00 | – | acerto |
+
+Resumo: 4 acertos, 1 falso negativo, 1 indeterminado, 0 falsos positivos, 0 classificações erradas, 0 excessos de
+confiança; precisão de detecção 100% e recall 67%. Um acidente afirmado com `ALTO` (`video_03`). Nos vídeos sem
+acidente (04, 09, 12) não houve evento. **Atenção ao `video_10`:** a confiança (0,54) e o instante (46,03 s) da
+tabela são os do evento de maior confiança do vídeo, que **não é** o acidente esperado (ver abaixo).
+
+### 8.2 Análise de cada erro e de cada resultado não afirmado (a partir das features)
+
+Só explicação: nenhuma correção foi proposta nem aplicada.
+
+**`video_03` (acerto, com duas ressalvas).** Par carro #78 × carro #17, contato em 6,43 s: os dois se movem (v_pre
+0,66 e 0,76), ângulo entre as direções 99° (lateral), aproximação 2,64 caixas/s, desaceleração 0,82 e 0,72, parados
+por 1,43 s e 1,03 s. Escore 0,15 + 0,217 + 0,20 + 0,40 − 0,15 = 0,82. Ressalvas: (a) o contato foi registrado
+0,57 s **antes** do instante do gabarito (7 s, valor inteiro anotado a olho); (b) a penalidade de continuidade ficou
+no máximo (−0,15; continuidade 0,30, o segundo carro só entra em cena pouco antes do contato) e a menor caixa no
+contato mede 52 px, **2 px acima do limite de 50 px do teto da seção 3.7**: com caixas 2 px menores o resultado
+seria `INDETERMINADO` 0,65. Um segundo par (#9 × #17, 0,70) é o mesmo acidente (mesmo `event_id`).
+
+**`video_05` (falso negativo, noturno, 848×478).** O analisador não gerou nenhum candidato. Houve 8 contatos descartados (pares), nenhum entre 2 e 5 s: cinco entre 0,33 s e 0,83 s (quatro "já parados antes", fila no semáforo, e
+um "sem histórico") e três em 11 e 13 s. Features dos veículos: caixas pequenas (41×36, 41×30 e 54×43 px, menores dimensões abaixo do limite de
+50 px, então o teto de resolução limitaria qualquer candidato a `INDETERMINADO`), confiança média de detecção de
+0,49 a 0,51 e quase parados (velocidade mediana 0,13 e 0,14 caixa/s; o #5 anda a 0,60). Os pares #3 × #4 e #3 × #5
+estão a gap ≤ 0,2 durante a janela do acidente (0,00 e 0,09 em 4,0 s), mas ambos já tinham sido descartados em
+0,33 s por "já parados antes", e o código só reavalia um par depois que ele se afasta (`liberar_gap` = 1,0): o
+#3 × #4 nunca se separa (gap máximo 0,34), então não é reavaliado. Não confirmei se o #3 × #5 chegou a ser
+liberado. Também não consegui identificar visualmente o impacto nos quadros desse vídeo (carros de ~30 a 50 px,
+noite, luzes dos faróis). Causa provável: veículos já encostados na imagem desde o início da cena, sem fase de
+aproximação visível, combinados com detecção fraca à noite.
+
+**`video_10` (`INDETERMINADO`, 480×272).** Há dois eventos no vídeo:
+- *Evento no instante do acidente (contato em 7,5 a 7,8 s, emitido aos 8,0 s):* `INDETERMINADO` 0,40 → 0,45. O
+  carro #96 se move rápido (v_pre 4,4 a 4,5 caixas/s) e cruza o grupo de pedestres na faixa; três pares com
+  pessoas (#3, #101, #120). Pessoa: queda da proporção 0,07 a 0,23, deslocamento brusco 1,5 a 4,1 caixas/s, **nenhuma
+  sumiu do tracking**. Carro: desaceleração de só 0,39 a 0,40 (a referência de reação plena é 0,90) e parado por
+  0,07 s, ou seja, não freou. Geometria 0,6, 0,0 e 0,77 (alinhamento 66°/70° no par com a pessoa #101 que mais se
+  desloca). Escores máximos 0,40, 0,26 e 0,43, com a contribuição da pessoa em só 0,07 a 0,09 de 0,50 possíveis.
+  As pessoas têm 8 a 11 px de largura (e ~25 px de altura), então queda de proporção e deslocamento ficam ruidosos,
+  o mesmo problema de objeto pequeno do `video_07` (seção 5). No recorte, o carro escuro atravessa o grupo de
+  pedestres entre 7,2 s e 8,4 s; não consegui confirmar visualmente quem foi atingido.
+- *Evento aos 46,03 s:* carro #613 × pessoa #650, `INDETERMINADO` 0,52 (0,54 no máximo; a pessoa some do tracking,
+  o carro desacelera 0,61). **Não é o acidente esperado** (8 s), mas, por ter confiança maior, é o que o
+  `avaliar.py` reporta (por isso 46,03 s na tabela). O tipo obtido (`INDETERMINADO`) coincide com o evento do
+  acidente, mas o instante reportado não.
+Em resumo: o evento do instante certo ficou em 0,45 (limiar de `ALTO`: 0,70) porque os sinais da pessoa são fracos
+(caixa minúscula) e o carro não freia; e um evento espúrio de maior confiança passou a representar o vídeo.
+
+**Vídeos sem acidente (04, 09, 12).** Nenhum candidato e nenhum evento; incluindo o `video_09` com chuva forte e
+detecção ruidosa.

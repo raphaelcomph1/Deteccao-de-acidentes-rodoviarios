@@ -1,0 +1,7 @@
+video,conjunto,rotulo_esperado,resultado_obtido,confianca,event_id,instante_esperado_s,instante_detectado_s,acerto,tipo_erro
+video_01.mp4,AJUSTE,COLISAO_TRASEIRA,INDETERMINADO,0.65,evt-CAM01-20261016T002103-c592,5,5.13,nao,indeterminado
+video_02.mp4,AJUSTE,COLISAO_LATERAL,INDETERMINADO,0.61,evt-CAM02-20261016T002126-b14d,8,8.17,nao,indeterminado
+video_06.mp4,AJUSTE,SEM_ACIDENTE,SEM_ACIDENTE,0.0,,,,sim,
+video_07.mp4,AJUSTE,ATROPELAMENTO,SEM_ACIDENTE,0.0,,3,,nao,falso_negativo
+video_08.mp4,AJUSTE,SEM_ACIDENTE,SEM_ACIDENTE,0.0,,,,sim,
+video_11.mp4,AJUSTE,SEM_ACIDENTE,INDETERMINADO,0.65,evt-CAM01-20261016T002609-3d29,,160.83,nao,indeterminado
