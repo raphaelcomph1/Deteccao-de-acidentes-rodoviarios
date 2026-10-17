@@ -7,6 +7,10 @@ fica com o operador humano.
 
 O enunciado completo está em `docs/CP3-MORGS.pdf`. Prazo de entrega: 16/10/2026.
 
+## Vídeo de demonstração
+
+[Assista no YouTube](https://youtu.be/GFwmn7ZtWNU)
+
 ## Objetivo
 
 Dado um vídeo de rodovia, o sistema:
