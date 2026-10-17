@@ -13,8 +13,8 @@ Dado um vídeo de rodovia, o sistema:
 
 1. detecta veículos e pessoas e acompanha cada um ao longo dos quadros;
 2. identifica indícios de acidente a partir do **movimento ao longo do tempo** (não só da sobreposição de caixas);
-3. classifica o evento em `COLISAO_TRASEIRA`, `COLISAO_LATERAL`, `ATROPELAMENTO` ou `INDETERMINADO`
-   (quando não há evidência suficiente, pede revisão humana);
+3. classifica o vídeo em `COLISAO_TRASEIRA`, `COLISAO_LATERAL`, `ATROPELAMENTO`, `INDETERMINADO`
+   (quando não há evidência suficiente, pede revisão humana) ou `SEM_ACIDENTE` (não publica evento);
 4. publica o evento via MQTT para a central, onde um operador confirma ou rejeita;
 5. aciona a sinalização em um ESP32 (Wokwi), que devolve um ACK à central.
 
@@ -37,22 +37,26 @@ O broker é público: trafegam apenas dados fictícios e nenhuma imagem.
 ├── AGENTS.md                # instruções para agentes de código (regras do projeto e checklist)
 ├── README.md
 ├── visao/                   # módulo de visão computacional
-│   ├── main.py              # YOLO + ByteTrack em um vídeo; gera o CSV de trajetórias
-│   ├── trajetorias.py       # velocidade e direção por track (CSV + vídeo de conferência)
-│   ├── eventos.py           # event_id, matriz de recomendação, montagem e validação do evento
-│   ├── publicador_mqtt.py   # publicação MQTT (QoS 1, reconexão, fila de pendentes)
-│   ├── avaliar.py           # compara o resultado com dados/gabarito.csv
+│   ├── main.py              # ponto de entrada: analisa um vídeo e publica os eventos no broker
+│   ├── pipeline.py          # pipeline completo (tracks → trajetórias → análise temporal → classificador → eventos)
 │   ├── detector_tracker.py  # envolve o YOLO com o tracking ByteTrack
+│   ├── trajetorias.py       # velocidade e direção por track (CSV + vídeo de conferência)
+│   ├── analise_temporal.py  # features entre pares de tracks (aproximação, parada brusca, ângulo)
+│   ├── classificador.py     # escore ponderado → tipo, confiança e nível
+│   ├── eventos.py           # event_id, deduplicação, matriz de recomendação, montagem e validação do evento
+│   ├── publicador_mqtt.py   # publicação MQTT (QoS 1, reconexão, fila de pendentes)
+│   ├── avaliar.py           # compara o resultado com dados/gabarito.csv (único que lê o gabarito)
 │   ├── util.py              # leitura do config.yaml
-│   ├── config.yaml          # modelo, tópicos, limiares, parâmetros das trajetórias
+│   ├── config.yaml          # modelo, tópicos, limiares, pesos e parâmetros
 │   ├── requirements.txt     # versões fixadas
-│   ├── testar_mqtt.py, testar_mqtt_offline.py, testar_avaliar.py   # testes
-│   └── saida/               # (ignorada pelo git) logs, evidências e resultados
-├── central/                 # Node-RED + dashboard (em construção)
-├── esp32/                   # firmware do ESP32 no Wokwi (em construção)
+│   ├── testar_*.py          # testes (MQTT, avaliar, análise temporal, classificador, eventos)
+│   └── saida/               # (ignorada pelo git) logs, evidências, eventos e resultados
+├── central/                 # Node-RED + dashboard (flows.json)
+├── esp32/                   # firmware, diagrama do Wokwi, testes e relatório do ESP32
 ├── dados/                   # gabarito.csv; dados/dev/ para vídeos de desenvolvimento (ignorada pelo git)
-├── videos/                  # vídeos (ignorada pelo git; vídeos nunca são commitados)
-└── docs/                    # enunciado, contrato MQTT, exemplos de mensagens, vídeos de desenvolvimento
+├── videos/                  # vídeos de AJUSTE (ignorada pelo git; vídeos nunca são commitados)
+├── videos_reservado/        # vídeos RESERVADOS, só para a avaliação final (*.mp4 ignorado pelo git)
+└── docs/                    # enunciado, contrato MQTT, exemplos, algoritmo da visão e resultados_finais/
 ```
 
 ## Integrantes
@@ -104,10 +108,10 @@ em `saida/evidencias/<event_id>.jpg` (a imagem **não** trafega pelo broker), os
 `saida/eventos/<video>_eventos.jsonl` e o CSV de trajetórias brutas em `saida/logs/<video>_trajetorias.csv`.
 
 ```powershell
-python main.py --video ..ideosideo_01.mp4 --sem-mqtt    # só analisa, não conecta no broker
-python main.py --video ..ideosideo_01.mp4               # analisa e publica no broker (avise o grupo antes)
-python main.py --video ..ideosideo_01.mp4 --mostrar     # abre janela com os IDs (q sai)
-python main.py --video ..ideosideo_01.mp4 --salvar-video  # grava vídeo anotado em saida/
+python main.py --video ..\videos\video_01.mp4 --sem-mqtt      # só analisa, não conecta no broker
+python main.py --video ..\videos\video_01.mp4                 # analisa e publica no broker (avise o grupo antes)
+python main.py --video ..\videos\video_01.mp4 --mostrar       # abre janela com os IDs (q sai)
+python main.py --video ..\videos\video_01.mp4 --salvar-video  # grava vídeo anotado em saida/
 ```
 
 **`trajetorias.py`** — a partir do CSV do `main.py`, calcula posição, tamanho da caixa, velocidade
@@ -116,7 +120,7 @@ Gera `saida/logs/<video>_features.csv` e `saida/logs/<video>_trajetorias.mp4` (r
 velocidade, para conferir os valores). Rode o `main.py` antes.
 
 ```powershell
-python trajetorias.py --video ..\videos\video.mp4
+python trajetorias.py --video ..\videos\video_01.mp4
 ```
 
 **`testar_mqtt.py`** — teste de conexão: valida o `docs/exemplos/evento.json` contra o contrato, publica no
@@ -132,16 +136,12 @@ python testar_mqtt_offline.py     # testa a fila de pendentes com um broker inex
 **`avaliar.py`** — roda o pipeline nos vídeos citados em `dados/gabarito.csv` e compara com o rótulo
 esperado. É o único arquivo autorizado a ler o gabarito. Gera `saida/resultados/resultados_<conjunto>_<data>.csv`
 e imprime acertos, falsos positivos, falsos negativos, classificações erradas, indeterminados, precisão e recall.
-
-```powershell
-python avaliar.py --conjunto AJUSTE
-python avaliar.py --conjunto RESERVADO    # só para a avaliação final
-```
+Veja "Como reproduzir a avaliação" abaixo.
 
 O `avaliar.py` usa o mesmo pipeline do `main.py`, sem publicar no broker. O `testar_avaliar.py` testa o restante
 do script com um gabarito falso. Os demais testes (cenas sintéticas, sem vídeo): `testar_analise_temporal.py`,
-`testar_classificador.py` e `testar_eventos.py`. A explicação do algoritmo, com pesos e limitações, está em
-`docs/algoritmo_visao.md`.
+`testar_classificador.py` e `testar_eventos.py`. A explicação do algoritmo, com a fórmula da confiança, pesos e
+limitações, está em `docs/algoritmo_visao.md`.
 
 ### Regras do projeto
 
@@ -179,9 +179,65 @@ os eventos recebidos via MQTT.
 
 ## ESP32
 
-Em construção.
+Sinalização da via: ESP32 simulado no Wokwi, controlado por MQTT conforme o contrato v0.2.
+
+**Circuito:** LED RGB nos pinos GPIO25 (vermelho), GPIO26 (verde) e GPIO27 (azul) e buzzer no GPIO14
+(`esp32/diagram.json`).
+
+**Estados:**
+
+| Estado | Sinalização |
+|---|---|
+| `NORMAL` | verde fixo |
+| `SUSPEITA` | amarelo piscando |
+| `CONFIRMADO` | vermelho piscando + buzzer |
+| `FALHA` | magenta piscando |
+
+**Projeto no Wokwi:** https://wokwi.com/projects/477268846467602433
+
+### Como rodar
+
+1. Abra o link acima (ou crie um projeto **ESP32** no Wokwi e substitua `sketch.ino`, `diagram.json` e
+   `libraries.txt` pelos arquivos de `esp32/`).
+2. Clique em Play. O Serial deve mostrar `[MQTT] conectado`.
+3. Com a central ligada (ou com `python esp32/test_mqtt.py`, que simula a central), o LED deve ficar verde.
+
+Detalhes dos arquivos e dos testes estão em `esp32/README.md`; os resultados e as evidências dos testes
+(duplicata, sincronização, queda do broker, timeout de heartbeat), em `esp32/RELATORIO_ESP32.md` e `esp32/evidencias/`.
 
 ## Resultados
 
-Ainda não há resultados de avaliação: os vídeos de teste não foram usados e a classificação de acidentes
-não foi implementada.
+Avaliação final do módulo de visão no conjunto **RESERVADO** (16/10/2026), com o código congelado na tag
+`v1.0-congelado`. Nenhum parâmetro foi alterado depois de abrir os vídeos reservados.
+
+| Vídeo | Esperado | Obtido | Confiança | Resultado |
+|---|---|---|---|---|
+| `video_03` | `COLISAO_LATERAL` | `COLISAO_LATERAL` | 0,82 (`ALTO`) | acerto |
+| `video_04` | `SEM_ACIDENTE` | `SEM_ACIDENTE` | 0,00 | acerto |
+| `video_05` | `COLISAO_TRASEIRA` | `SEM_ACIDENTE` | 0,00 | falso negativo |
+| `video_09` (chuva forte) | `SEM_ACIDENTE` | `SEM_ACIDENTE` | 0,00 | acerto |
+| `video_10` | `ATROPELAMENTO` | `INDETERMINADO` | 0,54 | indeterminado |
+| `video_12` | `SEM_ACIDENTE` | `SEM_ACIDENTE` | 0,00 | acerto |
+
+Resumo: 4 acertos, 1 falso negativo, 1 indeterminado, 0 falsos positivos e 0 classificações erradas;
+**precisão de detecção de 100% e recall de 67%**. No `video_10`, o evento de maior confiança não corresponde ao
+acidente esperado.
+
+Os CSVs (RESERVADO e AJUSTE) e as imagens de evidência estão em `docs/resultados_finais/`. A análise de cada erro
+está na seção 8 de `docs/algoritmo_visao.md`.
+
+### Como reproduzir a avaliação
+
+Os vídeos **não estão no repositório**. Para reproduzir:
+
+1. Coloque os vídeos de AJUSTE em `videos/` e os RESERVADOS em `videos_reservado/`, com os nomes usados no
+   `dados/gabarito.csv` (`video_NN.mp4`).
+2. Para usar exatamente o código avaliado, faça `git checkout v1.0-congelado`.
+3. Dentro de `visao/`, com o ambiente virtual ativo:
+
+```powershell
+python avaliar.py --conjunto AJUSTE --videos ..\videos
+python avaliar.py --conjunto RESERVADO --videos ..\videos_reservado
+```
+
+Os resultados saem em `visao/saida/resultados/`. Vídeos ausentes geram só um aviso.
